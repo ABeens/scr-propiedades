@@ -1,11 +1,455 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const properties = [
+	{
+		title: "Residencia Moderna en Sierra",
+		price: "$1,200,000",
+		type: "Venta",
+		location: "Ciudad de México",
+		image: "https://images.unsplash.com/photo-1600585154340-be6199f7c009?auto=format&fit=crop&w=800&q=80",
+		beds: 4,
+		baths: 3,
+	},
+	{
+		title: "Apartamento de Lujo Minimalista",
+		price: "$4,500/mes",
+		type: "Renta",
+		location: "Monterrey, NL",
+		image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+		beds: 2,
+		baths: 2,
+	},
+	{
+		title: "Villa con Vista al Mar",
+		price: "$2,800,000",
+		type: "Venta",
+		location: "Cancún, QR",
+		image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+		beds: 5,
+		baths: 4,
+	}
+];
 ---
 
 <Layout>
-	<Welcome />
+	<header class="header">
+		<div class="container nav-wrapper">
+			<div class="logo">
+				<img src="/main-logo.png" alt="Main Logo" height="50" />
+			</div>
+			<nav class="nav">
+				<a href="#inicio">Inicio</a>
+				<a href="#venta">Venta</a>
+				<a href="#renta">Renta</a>
+				<a href="#contacto" class="btn-outline">Contacto</a>
+			</nav>
+		</div>
+	</header>
+
+	<main>
+		<section class="hero" id="inicio">
+			<div class="hero-overlay"></div>
+			<div class="container hero-content">
+				<h1>Encuentra tu próximo <br/>capítulo aquí.</h1>
+				<p>Propiedades exclusivas seleccionadas para quienes buscan lo extraordinario.</p>
+				
+				<div class="search-box">
+					<div class="search-tabs">
+						<button class="active">Venta</button>
+						<button>Renta</button>
+					</div>
+					<div class="search-fields">
+						<input type="text" placeholder="Ubicación o palabra clave" />
+						<select>
+							<option>Tipo de propiedad</option>
+							<option>Casa</option>
+							<option>Apartamento</option>
+							<option>Terreno</option>
+						</select>
+						<button class="btn-primary">Buscar</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="featured container" id="venta">
+			<div class="section-header">
+				<h2>Propiedades Destacadas</h2>
+				<p>Descubre nuestra selección de inmuebles de lujo.</p>
+			</div>
+
+			<div class="property-grid">
+				{properties.map(prop => (
+					<div class="property-card">
+						<div class="card-image">
+							<img src={prop.image} alt={prop.title} />
+							<span class="badge">{prop.type}</span>
+						</div>
+						<div class="card-info">
+							<h3>{prop.title}</h3>
+							<p class="location">{prop.location}</p>
+							<p class="price">{prop.price}</p>
+							<div class="specs">
+								<span>{prop.beds} Rec.</span>
+								<span>{prop.baths} Baños</span>
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+		</section>
+
+		<section class="cta">
+			<div class="container">
+				<h2>¿Listo para vender tu propiedad?</h2>
+				<p>Permítenos ayudarte a encontrar al comprador ideal con nuestra red exclusiva.</p>
+				<a href="mailto:info@example.com" class="btn-primary">Contáctanos Hoy</a>
+			</div>
+		</section>
+	</main>
+
+	<footer class="footer">
+		<div class="container footer-grid">
+			<div class="footer-brand">
+				<img src="/main-logo.png" alt="Logo" height="40" />
+				<p>Excelencia en servicios inmobiliarios.</p>
+			</div>
+			<div class="footer-links">
+				<h4>Navegación</h4>
+				<a href="/">Venta</a>
+				<a href="/">Renta</a>
+				<a href="/">Nosotros</a>
+			</div>
+			<div class="footer-contact" id="contacto">
+				<h4>Contacto</h4>
+				<p>Av. Paseo de la Reforma, CDMX</p>
+				<p>+52 (55) 1234 5678</p>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; 2024 Real Estate. Todos los derechos reservados.</p>
+		</div>
+	</footer>
 </Layout>
+
+<style>
+	.container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 2rem;
+	}
+
+	.header {
+		position: fixed;
+		top: 0;
+		width: 100%;
+		z-index: 100;
+		padding: 1.5rem 0;
+		background: rgba(255, 255, 255, 0.95);
+		backdrop-filter: blur(10px);
+		border-bottom: 1px solid rgba(0,0,0,0.05);
+	}
+
+	.nav-wrapper {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.nav {
+		display: flex;
+		gap: 2.5rem;
+		align-items: center;
+		font-weight: 500;
+		text-transform: uppercase;
+		font-size: 0.85rem;
+		letter-spacing: 1px;
+	}
+
+	.nav a:hover {
+		color: var(--accent);
+	}
+
+	.btn-outline {
+		padding: 0.6rem 1.5rem;
+		border: 1px solid var(--primary);
+		transition: all 0.3s;
+	}
+
+	.btn-outline:hover {
+		background: var(--primary);
+		color: var(--white) !important;
+	}
+
+	.hero {
+		height: 90vh;
+		background: url('/bg-image.png') center/cover no-repeat;
+		position: relative;
+		display: flex;
+		align-items: center;
+		color: var(--white);
+		padding-top: 80px;
+	}
+
+	.hero-overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to right, rgba(0,0,0,0.7), transparent);
+	}
+
+	.hero-content {
+		position: relative;
+		z-index: 1;
+		max-width: 800px;
+	}
+
+	.hero h1 {
+		color: var(--white);
+		font-size: 4rem;
+		line-height: 1.1;
+		margin-bottom: 1.5rem;
+	}
+
+	.hero p {
+		font-size: 1.2rem;
+		opacity: 0.9;
+		margin-bottom: 3rem;
+		max-width: 500px;
+	}
+
+	.search-box {
+		background: var(--white);
+		padding: 1rem;
+		border-radius: 4px;
+		box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+		max-width: 700px;
+	}
+
+	.search-tabs {
+		display: flex;
+		gap: 1.5rem;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid #eee;
+		padding-bottom: 0.5rem;
+	}
+
+	.search-tabs button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-family: inherit;
+		font-weight: 600;
+		color: var(--text-muted);
+		padding: 0.5rem 0;
+		position: relative;
+	}
+
+	.search-tabs button.active {
+		color: var(--primary);
+	}
+
+	.search-tabs button.active::after {
+		content: '';
+		position: absolute;
+		bottom: -1px;
+		left: 0;
+		width: 100%;
+		height: 2px;
+		background: var(--accent);
+	}
+
+	.search-fields {
+		display: flex;
+		gap: 1rem;
+	}
+
+	.search-fields input, .search-fields select {
+		flex: 1;
+		padding: 0.8rem;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		font-family: inherit;
+	}
+
+	.btn-primary {
+		background: var(--primary);
+		color: var(--white);
+		padding: 0.8rem 2rem;
+		border: none;
+		cursor: pointer;
+		font-weight: 600;
+		transition: background 0.3s;
+	}
+
+	.btn-primary:hover {
+		background: #333;
+	}
+
+	.featured {
+		padding: 8rem 2rem;
+	}
+
+	.section-header {
+		text-align: center;
+		margin-bottom: 4rem;
+	}
+
+	.section-header h2 {
+		font-size: 2.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.property-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+		gap: 2.5rem;
+	}
+
+	.property-card {
+		background: #fff;
+		border: 1px solid #eee;
+		overflow: hidden;
+		transition: transform 0.3s;
+	}
+
+	.property-card:hover {
+		transform: translateY(-10px);
+	}
+
+	.card-image {
+		position: relative;
+		height: 250px;
+	}
+
+	.card-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.badge {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		background: var(--accent);
+		color: #fff;
+		padding: 0.3rem 0.8rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.5px;
+	}
+
+	.card-info {
+		padding: 1.5rem;
+	}
+
+	.card-info h3 {
+		font-size: 1.3rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.location {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		margin-bottom: 1rem;
+	}
+
+	.price {
+		font-weight: 700;
+		color: var(--primary);
+		font-size: 1.2rem;
+		margin-bottom: 1rem;
+	}
+
+	.specs {
+		display: flex;
+		gap: 1.5rem;
+		font-size: 0.85rem;
+		border-top: 1px solid #eee;
+		padding-top: 1rem;
+		color: var(--text-muted);
+	}
+
+	.cta {
+		background: var(--secondary);
+		padding: 6rem 0;
+		text-align: center;
+	}
+
+	.cta h2 {
+		font-size: 2.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.cta p {
+		max-width: 600px;
+		margin: 0 auto 2.5rem;
+		color: var(--text-muted);
+	}
+
+	.footer {
+		padding: 5rem 0 2rem;
+		background: #fff;
+		border-top: 1px solid #eee;
+	}
+
+	.footer-grid {
+		display: grid;
+		grid-template-columns: 2fr 1fr 1fr;
+		gap: 4rem;
+		margin-bottom: 4rem;
+	}
+
+	.footer-brand p {
+		margin-top: 1.5rem;
+		color: var(--text-muted);
+		max-width: 300px;
+	}
+
+	.footer h4 {
+		margin-bottom: 1.5rem;
+		font-size: 1rem;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+
+	.footer-links a {
+		display: block;
+		margin-bottom: 0.8rem;
+		color: var(--text-muted);
+	}
+
+	.footer-links a:hover {
+		color: var(--accent);
+	}
+
+	.footer-contact p {
+		color: var(--text-muted);
+		margin-bottom: 0.8rem;
+	}
+
+	.footer-bottom {
+		text-align: center;
+		padding-top: 2rem;
+		border-top: 1px solid #eee;
+		font-size: 0.85rem;
+		color: var(--text-muted);
+	}
+
+	@media (max-width: 768px) {
+		.hero h1 {
+			font-size: 2.5rem;
+		}
+		.nav {
+			display: none;
+		}
+		.search-fields {
+			flex-direction: column;
+		}
+		.footer-grid {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+	}
+</style>
