@@ -49,25 +49,26 @@ const properties = [
 
 	<main>
 		<section class="hero" id="inicio">
-			<div class="hero-overlay"></div>
-			<div class="container hero-content">
-				<h1>Encuentra tu próximo <br/>capítulo aquí.</h1>
-				<p>Propiedades exclusivas seleccionadas para quienes buscan lo extraordinario.</p>
-				
-				<div class="search-box">
-					<div class="search-tabs">
-						<button class="active">Venta</button>
-						<button>Renta</button>
-					</div>
-					<div class="search-fields">
-						<input type="text" placeholder="Ubicación o palabra clave" />
-						<select>
-							<option>Tipo de propiedad</option>
-							<option>Casa</option>
-							<option>Apartamento</option>
-							<option>Terreno</option>
-						</select>
-						<button class="btn-primary">Buscar</button>
+			<div class="container hero-grid">
+				<div class="hero-content">
+					<h1>Encuentra tu próximo <br/>capítulo aquí.</h1>
+					<p>Propiedades exclusivas seleccionadas para quienes buscan lo extraordinario.</p>
+					
+					<div class="search-box">
+						<div class="search-tabs">
+							<button class="active">Venta</button>
+							<button>Renta</button>
+						</div>
+						<div class="search-fields">
+							<input type="text" placeholder="Ubicación o palabra clave" />
+							<select>
+								<option>Tipo de propiedad</option>
+								<option>Casa</option>
+								<option>Apartamento</option>
+								<option>Terreno</option>
+							</select>
+							<button class="btn-primary">Buscar</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -183,29 +184,36 @@ const properties = [
 	}
 
 	.hero {
-		height: 90vh;
-		background: url('/bg-image.png') center/cover no-repeat;
-		position: relative;
+		min-height: 90vh;
 		display: flex;
 		align-items: center;
-		color: var(--white);
-		padding-top: 80px;
+		padding-top: 100px;
+		background: url('/bg-image.png') center/cover no-repeat;
+		position: relative;
 	}
 
-	.hero-overlay {
+	.hero::before {
+		content: '';
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to right, rgba(0,0,0,0.7), transparent);
+		background: linear-gradient(to right, rgba(255,255,255,0.9) 40%, rgba(255,255,255,0.2) 100%);
+		z-index: 1;
+	}
+
+	.hero-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4rem;
+		align-items: center;
+		position: relative;
+		z-index: 2;
 	}
 
 	.hero-content {
-		position: relative;
-		z-index: 1;
-		max-width: 800px;
+		max-width: 600px;
 	}
 
 	.hero h1 {
-		color: var(--white);
 		font-size: 4rem;
 		line-height: 1.1;
 		margin-bottom: 1.5rem;
@@ -213,7 +221,7 @@ const properties = [
 
 	.hero p {
 		font-size: 1.2rem;
-		opacity: 0.9;
+		color: var(--text-main);
 		margin-bottom: 3rem;
 		max-width: 500px;
 	}
@@ -222,8 +230,9 @@ const properties = [
 		background: var(--white);
 		padding: 1rem;
 		border-radius: 4px;
-		box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+		box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 		max-width: 700px;
+		border: 1px solid rgba(0,0,0,0.05);
 	}
 
 	.search-tabs {
@@ -450,6 +459,31 @@ const properties = [
 		.footer-grid {
 			grid-template-columns: 1fr;
 			gap: 2rem;
+		}
+		.hero {
+			padding-top: 120px;
+			min-height: auto;
+			background: none;
+		}
+		.hero::before {
+			display: none;
+		}
+		.hero-grid {
+			grid-template-columns: 1fr;
+			text-align: center;
+			gap: 2rem;
+		}
+		.hero-content {
+			max-width: 100%;
+		}
+		.hero h1 {
+			font-size: 2.5rem;
+		}
+		.hero p {
+			margin-inline: auto;
+		}
+		.search-box {
+			margin-inline: auto;
 		}
 	}
 </style>
