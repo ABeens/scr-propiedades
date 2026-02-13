@@ -1,35 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { properties } from '../data/properties';
 
-const properties = [
-	{
-		title: "Residencia Moderna en Sierra",
-		price: "$1,200,000",
-		type: "Venta",
-		location: "Ciudad de México",
-		image: "https://images.unsplash.com/photo-1600585154340-be6199f7c009?auto=format&fit=crop&w=800&q=80",
-		beds: 4,
-		baths: 3,
-	},
-	{
-		title: "Apartamento de Lujo Minimalista",
-		price: "$4,500/mes",
-		type: "Renta",
-		location: "Monterrey, NL",
-		image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
-		beds: 2,
-		baths: 2,
-	},
-	{
-		title: "Villa con Vista al Mar",
-		price: "$2,800,000",
-		type: "Venta",
-		location: "Cancún, QR",
-		image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
-		beds: 5,
-		baths: 4,
-	}
-];
+const featured = properties.slice(0, 3);
 ---
 
 <Layout>
@@ -38,10 +11,15 @@ const properties = [
 			<div class="logo">
 				<img src="/main-logo-dark-mode.png" alt="Main Logo" height="50" />
 			</div>
-			<nav class="nav">
+			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+				<span></span>
+				<span></span>
+				<span></span>
+			</button>
+			<nav class="nav" id="mainNav">
 				<a href="#inicio">Inicio</a>
-				<a href="#venta">Venta</a>
-				<a href="#renta">Renta</a>
+				<a href="/catalogo?type=Venta">Venta</a>
+				<a href="/catalogo?type=Renta">Renta</a>
 				<a href="#contacto" class="btn-outline">Contacto</a>
 			</nav>
 		</div>
@@ -61,19 +39,10 @@ const properties = [
 					<p>Propiedades exclusivas seleccionadas para quienes buscan lo extraordinario.</p>
 					
 					<div class="search-box">
-						<div class="search-tabs">
-							<button class="active">Venta</button>
-							<button>Renta</button>
-						</div>
-						<div class="search-fields">
-							<input type="text" placeholder="Ubicación o palabra clave" />
-							<select>
-								<option>Tipo de propiedad</option>
-								<option>Casa</option>
-								<option>Apartamento</option>
-								<option>Terreno</option>
-							</select>
-							<button class="btn-primary">Buscar</button>
+						<p class="search-label">¿Qué deseas hacer? Nosotros te ayudamos</p>
+						<div class="search-buttons">
+							<a href="/catalogo?type=Venta" class="btn-option">Comprar</a>
+							<a href="/catalogo?type=Renta" class="btn-option">Rentar</a>
 						</div>
 					</div>
 				</div>
@@ -87,18 +56,18 @@ const properties = [
 			</div>
 
 			<div class="property-grid">
-				{properties.map(prop => (
+				{featured.map(prop => (
 					<div class="property-card">
 						<div class="card-image">
-							<img src={prop.image} alt={prop.title} />
+							<img src={prop.images[0]} alt={prop.title} />
 							<span class="badge">{prop.type}</span>
 						</div>
 						<div class="card-info">
 							<h3>{prop.title}</h3>
 							<p class="location">{prop.location}</p>
-							<p class="price">{prop.price}</p>
+							<p class="price">{prop.priceDisplay}</p>
 							<div class="specs">
-								<span>{prop.beds} Rec.</span>
+								<span>{prop.beds} Hab</span>
 								<span>{prop.baths} Baños</span>
 							</div>
 						</div>
@@ -124,14 +93,14 @@ const properties = [
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href="/">Venta</a>
-				<a href="/">Renta</a>
+				<a href="/catalogo?type=Venta">Venta</a>
+				<a href="/catalogo?type=Renta">Renta</a>
 				<a href="/">Nosotros</a>
 			</div>
 			<div class="footer-contact" id="contacto">
 				<h4>Contacto</h4>
-				<p>Av. Paseo de la Reforma, CDMX</p>
-				<p>+52 (55) 1234 5678</p>
+				<p>San José, Costa Rica</p>
+				<p>+506 7014 1868</p>
 			</div>
 		</div>
 		<div class="footer-bottom">
@@ -152,6 +121,24 @@ const properties = [
 			const logo = document.querySelector('.logo img');
 			logo.src = '/main-logo-dark-mode.png';
 		}
+	});
+
+	// Hamburger menu
+	const hamburgerBtn = document.getElementById('hamburgerBtn');
+	const mainNav = document.getElementById('mainNav');
+
+	hamburgerBtn.addEventListener('click', () => {
+		hamburgerBtn.classList.toggle('active');
+		mainNav.classList.toggle('active');
+		document.body.style.overflow = mainNav.classList.contains('active') ? 'hidden' : '';
+	});
+
+	mainNav.querySelectorAll('a').forEach(link => {
+		link.addEventListener('click', () => {
+			hamburgerBtn.classList.remove('active');
+			mainNav.classList.remove('active');
+			document.body.style.overflow = '';
+		});
 	});
 </script>
 
@@ -292,57 +279,46 @@ const properties = [
 
 	.search-box {
 		background: var(--white);
-		padding: 1rem;
+		padding: 2rem 2.5rem;
 		border-radius: 4px;
 		box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-		max-width: 700px;
+		max-width: 420px;
+		margin: 0 auto;
 		border: 1px solid rgba(0,0,0,0.05);
+		text-align: center;
 	}
 
-	.search-tabs {
-		display: flex;
-		gap: 1.5rem;
-		margin-bottom: 1rem;
-		border-bottom: 1px solid #eee;
-		padding-bottom: 0.5rem;
+	.search-box .search-label {
+		color: #555;
+		font-size: 0.95rem;
+		font-weight: 500;
+		margin-bottom: 1.5rem;
 	}
 
-	.search-tabs button {
-		background: none;
-		border: none;
-		cursor: pointer;
-		font-family: inherit;
-		font-weight: 600;
-		color: var(--text-muted);
-		padding: 0.5rem 0;
-		position: relative;
-	}
-
-	.search-tabs button.active {
-		color: var(--primary);
-	}
-
-	.search-tabs button.active::after {
-		content: '';
-		position: absolute;
-		bottom: -1px;
-		left: 0;
-		width: 100%;
-		height: 2px;
-		background: var(--accent);
-	}
-
-	.search-fields {
+	.search-buttons {
 		display: flex;
 		gap: 1rem;
+		justify-content: center;
 	}
 
-	.search-fields input, .search-fields select {
+	.btn-option {
 		flex: 1;
-		padding: 0.8rem;
-		border: 1px solid #ddd;
-		border-radius: 4px;
+		padding: 0.9rem 2rem;
 		font-family: inherit;
+		font-weight: 600;
+		font-size: 1rem;
+		text-align: center;
+		border: 2px solid var(--primary);
+		background: transparent;
+		color: var(--primary);
+		cursor: pointer;
+		transition: all 0.3s;
+		text-decoration: none;
+	}
+
+	.btn-option:hover {
+		background: var(--primary);
+		color: var(--white);
 	}
 
 	.btn-primary {
@@ -510,12 +486,79 @@ const properties = [
 		color: var(--text-muted);
 	}
 
+	/* Hamburger button */
+	.hamburger {
+		display: none;
+		flex-direction: column;
+		justify-content: center;
+		gap: 5px;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0.5rem;
+		z-index: 201;
+	}
+
+	.hamburger span {
+		display: block;
+		width: 24px;
+		height: 2px;
+		background: var(--white);
+		transition: all 0.3s ease;
+	}
+
+	.header.scrolled .hamburger span {
+		background: var(--primary);
+	}
+
+	.hamburger.active span:nth-child(1) {
+		transform: rotate(45deg) translate(5px, 5px);
+	}
+
+	.hamburger.active span:nth-child(2) {
+		opacity: 0;
+	}
+
+	.hamburger.active span:nth-child(3) {
+		transform: rotate(-45deg) translate(5px, -5px);
+	}
+
 	@media (max-width: 768px) {
-		.hero h1 {
-			font-size: 2.5rem;
+		.hamburger {
+			display: flex;
 		}
+
 		.nav {
 			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100vh;
+			background: rgba(0, 0, 0, 0.95);
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 2rem;
+			z-index: 200;
+			font-size: 1.2rem;
+		}
+
+		.nav.active {
+			display: flex;
+		}
+
+		.nav a {
+			color: var(--white) !important;
+			font-size: 1.2rem;
+		}
+
+		.nav .btn-outline {
+			border-color: var(--white);
+		}
+
+		.hero h1 {
+			font-size: 2.5rem;
 		}
 		.search-fields {
 			flex-direction: column;
