@@ -10,6 +10,7 @@ export function getStaticPaths() {
 }
 
 const { property } = Astro.props;
+const base = import.meta.env.BASE_URL;
 
 const whatsappMessage = encodeURIComponent(`Hola, me interesa la propiedad: ${property.title} (${property.priceDisplay}). ¿Podrían darme más información?`);
 const whatsappLink = `https://wa.me/50670141868?text=${whatsappMessage}`;
@@ -19,8 +20,8 @@ const whatsappLink = `https://wa.me/50670141868?text=${whatsappMessage}`;
 	<header class="header">
 		<div class="container nav-wrapper">
 			<div class="logo">
-				<a href="/">
-					<img src="/main-logo.png" alt="Main Logo" height="50" />
+				<a href={base}>
+					<img src={`${base}main-logo.png`} alt="Main Logo" height="50" />
 				</a>
 			</div>
 			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
@@ -29,10 +30,10 @@ const whatsappLink = `https://wa.me/50670141868?text=${whatsappMessage}`;
 				<span></span>
 			</button>
 			<nav class="nav" id="mainNav">
-				<a href="/">Inicio</a>
-				<a href="/catalogo?type=Venta">Venta</a>
-				<a href="/catalogo?type=Renta">Renta</a>
-				<a href="/#contacto" class="btn-outline">Contacto</a>
+				<a href={base}>Inicio</a>
+				<a href={`${base}catalogo?type=Venta`}>Venta</a>
+				<a href={`${base}catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}#contacto`} class="btn-outline">Contacto</a>
 			</nav>
 		</div>
 	</header>
@@ -42,7 +43,7 @@ const whatsappLink = `https://wa.me/50670141868?text=${whatsappMessage}`;
 			<img src={property.images[0]} alt={property.title} class="hero-image" />
 			<div class="hero-overlay">
 				<div class="container">
-					<a href="/catalogo" class="back-link">&larr; Volver al catálogo</a>
+					<a href={`${base}catalogo`} class="back-link">&larr; Volver al catálogo</a>
 					<h1>{property.title}</h1>
 					<p class="hero-location">{property.location}</p>
 				</div>
@@ -137,14 +138,14 @@ const whatsappLink = `https://wa.me/50670141868?text=${whatsappMessage}`;
 	<footer class="footer">
 		<div class="container footer-grid">
 			<div class="footer-brand">
-				<img src="/main-logo.png" alt="Logo" height="40" />
+				<img src={`${base}main-logo.png`} alt="Logo" height="40" />
 				<p>Excelencia en servicios inmobiliarios.</p>
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href="/catalogo?type=Venta">Venta</a>
-				<a href="/catalogo?type=Renta">Renta</a>
-				<a href="/#contacto">Contacto</a>
+				<a href={`${base}catalogo?type=Venta`}>Venta</a>
+				<a href={`${base}catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}#contacto`}>Contacto</a>
 			</div>
 			<div class="footer-contact">
 				<h4>Contacto</h4>
