@@ -10,7 +10,7 @@ const featured = properties.slice(0, 3);
 	<header class="header">
 		<div class="container nav-wrapper">
 			<div class="logo">
-				<img src={`${base}main-logo-dark-mode.png`} alt="Main Logo" height="50" />
+				<img src={`${base}/main-logo-dark-mode.png`} alt="Main Logo" height="50" />
 			</div>
 			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
 				<span></span>
@@ -19,8 +19,8 @@ const featured = properties.slice(0, 3);
 			</button>
 			<nav class="nav" id="mainNav">
 				<a href="#inicio">Inicio</a>
-				<a href={`${base}catalogo?type=Venta`}>Venta</a>
-				<a href={`${base}catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}/catalogo?type=Venta`}>Venta</a>
+				<a href={`${base}/catalogo?type=Renta`}>Renta</a>
 				<a href="#contacto" class="btn-outline">Contacto</a>
 			</nav>
 		</div>
@@ -29,8 +29,8 @@ const featured = properties.slice(0, 3);
 	<main>
 		<section class="hero" id="inicio">
 			<div class="video-background">
-				<video autoplay muted loop playsinline poster={`${base}bg-min.png`}>
-					<source src={`${base}bg-video.mp4`} type="video/mp4" />
+				<video autoplay muted loop playsinline poster={`${base}/bg-min.png`}>
+					<source src={`${base}/bg-video.mp4`} type="video/mp4" />
 					Tu navegador no soporta videos.
 				</video>
 			</div>
@@ -42,8 +42,8 @@ const featured = properties.slice(0, 3);
 					<div class="search-box">
 						<p class="search-label">¿Qué deseas hacer? Nosotros te ayudamos</p>
 						<div class="search-buttons">
-							<a href={`${base}catalogo?type=Venta`} class="btn-option">Comprar</a>
-							<a href={`${base}catalogo?type=Renta`} class="btn-option">Rentar</a>
+							<a href={`${base}/catalogo?type=Venta`} class="btn-option">Comprar</a>
+							<a href={`${base}/catalogo?type=Renta`} class="btn-option">Rentar</a>
 						</div>
 					</div>
 				</div>
@@ -89,13 +89,13 @@ const featured = properties.slice(0, 3);
 	<footer class="footer">
 		<div class="container footer-grid">
 			<div class="footer-brand">
-				<img src={`${base}main-logo.png`} alt="Logo" height="40" />
+				<img src={`${base}/main-logo.png`} alt="Logo" height="40" />
 				<p>Excelencia en servicios inmobiliarios.</p>
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href={`${base}catalogo?type=Venta`}>Venta</a>
-				<a href={`${base}catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}/catalogo?type=Venta`}>Venta</a>
+				<a href={`${base}/catalogo?type=Renta`}>Renta</a>
 				<a href={base}>Nosotros</a>
 			</div>
 			<div class="footer-contact" id="contacto">
@@ -118,11 +118,11 @@ const featured = properties.slice(0, 3);
 		if (window.scrollY > 50) {
 			header.classList.add('scrolled');
 			const logo = document.querySelector('.logo img');
-			logo.src = basePath + 'main-logo.png';
+			logo.src = basePath + '/main-logo.png';
 		} else {
 			header.classList.remove('scrolled');
 			const logo = document.querySelector('.logo img');
-			logo.src = basePath + 'main-logo-dark-mode.png';
+			logo.src = basePath + '/main-logo-dark-mode.png';
 		}
 	});
 
