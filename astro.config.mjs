@@ -5,5 +5,5 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   output: 'static',
   site: 'https://abeens.github.io',
-  base: '/scr-propiedades',
+  base: '/scr-propiedades/',
 });

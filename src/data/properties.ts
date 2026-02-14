@@ -22,6 +22,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example1/",
 		video: "https://www.instagram.com/reel/example1/",
+		lat: 9.9280,
+		lng: -84.1385,
 	},
 	{
 		id: "2",
@@ -45,6 +47,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example2/",
 		video: "https://www.instagram.com/reel/example2/",
+		lat: 9.9362,
+		lng: -84.1827,
 	},
 	{
 		id: "3",
@@ -68,6 +72,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example3/",
 		video: "https://www.instagram.com/reel/example3/",
+		lat: 10.2994,
+		lng: -85.8375,
 	},
 	{
 		id: "4",
@@ -91,6 +97,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example4/",
 		video: "https://www.instagram.com/reel/example4/",
+		lat: 9.9361,
+		lng: -84.1044,
 	},
 	{
 		id: "5",
@@ -114,6 +122,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example5/",
 		video: "https://www.instagram.com/reel/example5/",
+		lat: 9.9757,
+		lng: -84.3827,
 	},
 	{
 		id: "6",
@@ -137,6 +147,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example6/",
 		video: "https://www.instagram.com/reel/example6/",
+		lat: 9.9381,
+		lng: -84.0690,
 	},
 	{
 		id: "7",
@@ -161,6 +173,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/scrpropiedades",
 		video: "https://www.instagram.com/reel/DKc50ypplGz/",
+		lat: 9.9513,
+		lng: -84.1952,
 	},
 	{
 		id: "8",
@@ -184,6 +198,8 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example8/",
 		video: "https://www.instagram.com/reel/example8/",
+		lat: 10.0024,
+		lng: -84.1165,
 	},
 	{
 		id: "9",
@@ -206,5 +222,7 @@ export const properties = [
 		],
 		instagram: "https://www.instagram.com/reel/example9/",
 		video: "https://www.instagram.com/reel/example9/",
+		lat: 10.4395,
+		lng: -85.7827,
 	},
 ];
