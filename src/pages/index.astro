@@ -4,13 +4,15 @@ import { properties } from '../data/properties';
 
 const base = import.meta.env.BASE_URL;
 const featured = properties.slice(0, 3);
+const publishWhatsAppMessage = encodeURIComponent("Hola, me interesa publicar mi propiedad con ustedes.");
+const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMessage}`;
 ---
 
-<Layout>
+<Layout showWhatsApp={true}>
 	<header class="header">
 		<div class="container nav-wrapper">
 			<div class="logo">
-				<img src={`${base}/main-logo-dark-mode.png`} alt="Main Logo" height="50" />
+				<img src={`${base}/main-logo-dark-mode.png`} alt="Main Logo" height="80" />
 			</div>
 			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
 				<span></span>
@@ -19,8 +21,8 @@ const featured = properties.slice(0, 3);
 			</button>
 			<nav class="nav" id="mainNav">
 				<a href="#inicio">Inicio</a>
-				<a href={`${base}/catalogo?type=Venta`}>Venta</a>
-				<a href={`${base}/catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}/catalog?type=sale`}>Comprar</a>
+				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
 				<a href="#contacto" class="btn-outline">Contacto</a>
 			</nav>
 		</div>
@@ -36,14 +38,14 @@ const featured = properties.slice(0, 3);
 			</div>
 			<div class="container">
 				<div class="hero-content">
-					<h1>Encuentra tu próximo <br/>capítulo aquí.</h1>
-					<p>Propiedades exclusivas seleccionadas para quienes buscan lo extraordinario.</p>
+					<h2>Asesoría inmobiliaria adaptada a sus necesidades.</h2>
+					<p>Orientación profesional para decisiones importantes.</p>
 					
 					<div class="search-box">
 						<p class="search-label">¿Qué deseas hacer? Nosotros te ayudamos</p>
 						<div class="search-buttons">
-							<a href={`${base}/catalogo?type=Venta`} class="btn-option">Comprar</a>
-							<a href={`${base}/catalogo?type=Renta`} class="btn-option">Rentar</a>
+							<a href={`${base}/catalog?type=sale`} class="btn-option">Comprar</a>
+							<a href={`${base}/catalog?type=rent`} class="btn-option">Alquilar</a>
 						</div>
 					</div>
 				</div>
@@ -53,26 +55,25 @@ const featured = properties.slice(0, 3);
 		<section class="featured container" id="venta">
 			<div class="section-header">
 				<h2>Propiedades Destacadas</h2>
-				<p>Descubre nuestra selección de inmuebles de lujo.</p>
 			</div>
 
 			<div class="property-grid">
 				{featured.map(prop => (
-					<div class="property-card">
+					<a href={`${base}/propiedad/${prop.id}`} class="property-card">
 						<div class="card-image">
 							<img src={prop.images[0]} alt={prop.title} />
-							<span class="badge">{prop.type}</span>
+							<span class="badge">{prop.type === 'sale' ? 'Comprar' : 'Alquilar'}</span>
 						</div>
 						<div class="card-info">
 							<h3>{prop.title}</h3>
 							<p class="location">{prop.location}</p>
-							<p class="price">{prop.priceDisplay}</p>
+							<p class="price">{prop.priceDisplay} | <span class="price-usd">{prop.priceDisplayUSD}</span></p>
 							<div class="specs">
 								<span>{prop.beds} Hab</span>
 								<span>{prop.baths} Baños</span>
 							</div>
 						</div>
-					</div>
+					</a>
 				))}
 			</div>
 		</section>
@@ -81,7 +82,7 @@ const featured = properties.slice(0, 3);
 			<div class="container">
 				<h2>¿Listo para vender tu propiedad?</h2>
 				<p>Permítenos ayudarte a encontrar al comprador ideal con nuestra red exclusiva.</p>
-				<a href="mailto:info@example.com" class="btn-primary">Contáctanos Hoy</a>
+				<a href={publishWhatsAppLink} target="_blank" rel="noopener noreferrer" class="btn-primary">Contáctanos Hoy</a>
 			</div>
 		</section>
 	</main>
@@ -94,8 +95,8 @@ const featured = properties.slice(0, 3);
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href={`${base}/catalogo?type=Venta`}>Venta</a>
-				<a href={`${base}/catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}/catalog?type=sale`}>Comprar</a>
+				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
 				<a href={base}>Nosotros</a>
 			</div>
 			<div class="footer-contact" id="contacto">
@@ -271,11 +272,19 @@ const featured = properties.slice(0, 3);
 		color: var(--white);
 	}
 
+		.hero h2 {
+		font-size: 3rem;
+		line-height: 1.1;
+		margin-bottom: 1.5rem;
+		color: var(--white);
+	}
+
 	.hero p {
 		font-size: 1.2rem;
 		color: rgba(255, 255, 255, 0.9);
 		margin-bottom: 3rem;
 		max-width: 600px;
+		margin-inline: auto;
 	}
 
 
@@ -410,8 +419,12 @@ const featured = properties.slice(0, 3);
 	.price {
 		font-weight: 700;
 		color: var(--primary);
-		font-size: 1.2rem;
+		font-size: 1.15rem;
 		margin-bottom: 1rem;
+	}
+
+	.price-usd {
+		color: var(--accent);
 	}
 
 	.specs {

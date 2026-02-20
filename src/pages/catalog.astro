@@ -5,12 +5,12 @@ import { properties } from '../data/properties';
 const base = import.meta.env.BASE_URL;
 ---
 
-<Layout>
+<Layout showWhatsApp={true}>
 	<header class="header">
 		<div class="container nav-wrapper">
 			<div class="logo">
 				<a href={base}>
-					<img src={`${base}/main-logo.png`} alt="Main Logo" height="50" />
+					<img src={`${base}/main-logo.png`} alt="Main Logo" height="80" />
 				</a>
 			</div>
 			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
@@ -20,8 +20,8 @@ const base = import.meta.env.BASE_URL;
 			</button>
 			<nav class="nav" id="mainNav">
 				<a href={base}>Inicio</a>
-				<a href={`${base}/catalogo?type=Venta`}>Venta</a>
-				<a href={`${base}/catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}/catalog?type=sale`}>Comprar</a>
+				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
 				<a href={`${base}/#contacto`} class="btn-outline">Contacto</a>
 			</nav>
 		</div>
@@ -31,7 +31,7 @@ const base = import.meta.env.BASE_URL;
 		<section class="catalog-header">
 			<div class="container">
 				<h1>Nuestro Catálogo</h1>
-				<p>Explora nuestra selección exclusiva de propiedades en venta y renta.</p>
+				<p>Explora nuestra selección exclusiva de propiedades para comprar y alquilar.</p>
 			</div>
 		</section>
 
@@ -63,10 +63,10 @@ const base = import.meta.env.BASE_URL;
 							<input type="radio" name="operationType" value="all" checked> Todos
 						</label>
 						<label>
-							<input type="radio" name="operationType" value="Venta"> Venta
+							<input type="radio" name="operationType" value="sale"> Comprar
 						</label>
 						<label>
-							<input type="radio" name="operationType" value="Renta"> Renta
+							<input type="radio" name="operationType" value="rent"> Alquilar
 						</label>
 					</div>
 				</div>
@@ -75,8 +75,8 @@ const base = import.meta.env.BASE_URL;
 					<h3>Tipo de Propiedad</h3>
 					<select id="propertyTypeFilter">
 						<option value="all">Todos los tipos</option>
-						<option value="Vivienda">Vivienda</option>
-						<option value="Lote">Lote</option>
+						<option value="house">Vivienda</option>
+						<option value="lot">Lote</option>
 					</select>
 				</div>
 				
@@ -136,17 +136,17 @@ const base = import.meta.env.BASE_URL;
 							 data-location={prop.location} 
 							 data-beds={prop.beds}
 							 data-price={prop.price}
-							 data-category={prop.category}
+							 data-property-type={prop.propertyType}
 							 data-status={prop.status}
 						>
 							<div class="card-image">
 								<img src={prop.images[0]} alt={prop.title} loading="lazy" />
-								<span class="badge">{prop.type}</span>
+								<span class="badge">{prop.type === 'sale' ? 'Comprar' : 'Alquilar'}</span>
 							</div>
 							<div class="card-info">
 								<h3>{prop.title}</h3>
 								<p class="location">{prop.location}</p>
-								<p class="price">{prop.priceDisplay}</p>
+								<p class="price">{prop.priceDisplay} | <span class="price-usd">{prop.priceDisplayUSD}</span></p>
 								<div class="specs">
 									<span>{prop.beds > 0 ? `${prop.beds} Hab` : 'Residencial'}</span>
 									<span class="status-tag">{prop.status}</span>
@@ -168,8 +168,8 @@ const base = import.meta.env.BASE_URL;
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href={`${base}/catalogo?type=Venta`}>Venta</a>
-				<a href={`${base}/catalogo?type=Renta`}>Renta</a>
+				<a href={`${base}/catalog?type=sale`}>Comprar</a>
+				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
 				<a href={`${base}/#contacto`}>Contacto</a>
 			</div>
 			<div class="footer-contact">
@@ -278,7 +278,7 @@ const base = import.meta.env.BASE_URL;
 			cards.forEach(card => {
 				const cardType = card.getAttribute('data-type');
 				const cardLocation = card.getAttribute('data-location');
-				const cardCategory = card.getAttribute('data-category');
+				const cardPropertyType = card.getAttribute('data-property-type');
 				const cardStatus = card.getAttribute('data-status');
 				const cardBeds = parseInt(card.getAttribute('data-beds'));
 				const cardPrice = parseFloat(card.getAttribute('data-price'));
@@ -296,8 +296,8 @@ const base = import.meta.env.BASE_URL;
 					show = false;
 				}
 
-				// Filter by Category (Lote/Vivienda)
-				if (selectedCategory !== 'all' && cardCategory !== selectedCategory) {
+				// Filter by Property Type (lot/house)
+				if (selectedCategory !== 'all' && cardPropertyType !== selectedCategory) {
 					show = false;
 				}
 
@@ -644,8 +644,12 @@ const base = import.meta.env.BASE_URL;
 	.price {
 		color: var(--primary);
 		font-weight: 700;
-		font-size: 1.1rem;
+		font-size: 1.05rem;
 		margin-bottom: 1rem;
+	}
+
+	.price-usd {
+		color: var(--accent);
 	}
 
 	.specs {
