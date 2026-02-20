@@ -107,13 +107,33 @@ const base = import.meta.env.BASE_URL;
 				</div>
 
 				<div class="filter-group">
-					<h3>Rango de Precio</h3>
+					<h3>Tamaño (m²)</h3>
+					<div class="price-inputs">
+						<input type="number" id="minArea" placeholder="Mín" min="0">
+						<span>-</span>
+						<input type="number" id="maxArea" placeholder="Máx" min="0">
+					</div>
+					<small class="price-note">Área en metros cuadrados</small>
+				</div>
+
+				<div class="filter-group">
+					<h3>Filtro de Precio</h3>
+					<div class="currency-selector">
+						<label class="currency-radio">
+							<input type="radio" name="currencyType" value="CRC" checked>
+							<span class="radio-label">₡</span>
+						</label>
+						<label class="currency-radio">
+							<input type="radio" name="currencyType" value="USD">
+							<span class="radio-label">$</span>
+						</label>
+					</div>
 					<div class="price-inputs">
 						<input type="number" id="minPrice" placeholder="Mín" min="0">
 						<span>-</span>
 						<input type="number" id="maxPrice" placeholder="Máx" min="0">
 					</div>
-					<small class="price-note">Precios en colones costarricenses (₡)</small>
+					<small id="priceRangeNote" class="price-note">Precios en colones costarricenses (₡)</small>
 				</div>
 
 				<div class="filter-group">
@@ -121,6 +141,22 @@ const base = import.meta.env.BASE_URL;
 					<div class="range-wrapper">
 						<input type="range" id="bedsFilter" min="1" max="6" value="1" step="1">
 						<span id="bedsValue">1+</span>
+					</div>
+				</div>
+
+				<div class="filter-group">
+					<h3>Baños (Mínimo)</h3>
+					<div class="range-wrapper">
+						<input type="range" id="bathsFilter" min="1" max="6" value="1" step="1">
+						<span id="bathsValue">1+</span>
+					</div>
+				</div>
+
+				<div class="filter-group">
+					<h3>Parqueos (Mínimo)</h3>
+					<div class="range-wrapper">
+						<input type="range" id="parkingFilter" min="0" max="6" value="0" step="1">
+						<span id="parkingValue">0+</span>
 					</div>
 				</div>
 
@@ -139,7 +175,11 @@ const base = import.meta.env.BASE_URL;
 							 data-type={prop.type} 
 							 data-location={prop.location} 
 							 data-beds={prop.beds}
+							 data-baths={prop.baths}
+							 data-parking={prop.parking}
+							 data-area-val={prop.area.replace(/[^\d.]/g, '')}
 							 data-price={prop.price}
+							 data-price-usd={prop.priceUSD}
 							 data-property-type={prop.propertyType}
 							 data-status={prop.status}
 						>
@@ -220,8 +260,12 @@ const base = import.meta.env.BASE_URL;
 	document.addEventListener('DOMContentLoaded', () => {
 		const typeRadios = document.querySelectorAll('input[name="operationType"]');
 		const locationSelect = document.getElementById('locationFilter');
-		const bedsInput = document.getElementById('bedsFilter');
+		const bedsInput = document.getElementById('bedsFilter') as HTMLInputElement;
 		const bedsValue = document.getElementById('bedsValue');
+		const bathsInput = document.getElementById('bathsFilter') as HTMLInputElement;
+		const bathsValue = document.getElementById('bathsValue');
+		const parkingInput = document.getElementById('parkingFilter') as HTMLInputElement;
+		const parkingValue = document.getElementById('parkingValue');
 		const resetBtn = document.getElementById('resetFilters');
 		const grid = document.getElementById('propertiesGrid');
 		const cards = document.querySelectorAll('.property-card');
@@ -298,10 +342,29 @@ const base = import.meta.env.BASE_URL;
 			const selectedStatus = document.getElementById('statusFilter').value;
 			const selectedSort = document.getElementById('sortFilter').value;
 			const minBeds = parseInt(bedsInput.value);
-			const minPrice = document.getElementById('minPrice').value ? parseFloat(document.getElementById('minPrice').value) : 0;
-			const maxPrice = document.getElementById('maxPrice').value ? parseFloat(document.getElementById('maxPrice').value) : Infinity;
+			const minBaths = parseInt(bathsInput.value);
+			const minParking = parseInt(parkingInput.value);
+			const minPrice = (document.getElementById('minPrice') as HTMLInputElement).value ? parseFloat((document.getElementById('minPrice') as HTMLInputElement).value) : 0;
+			const maxPrice = (document.getElementById('maxPrice') as HTMLInputElement).value ? parseFloat((document.getElementById('maxPrice') as HTMLInputElement).value) : Infinity;
+			const minArea = (document.getElementById('minArea') as HTMLInputElement).value ? parseFloat((document.getElementById('minArea') as HTMLInputElement).value) : 0;
+			const maxArea = (document.getElementById('maxArea') as HTMLInputElement).value ? parseFloat((document.getElementById('maxArea') as HTMLInputElement).value) : Infinity;
 
-			bedsValue.textContent = minBeds + "+";
+			// Update values displayed next to ranges
+			if (bedsValue) bedsValue.textContent = minBeds + "+";
+			if (bathsValue) bathsValue.textContent = minBaths + "+";
+			if (parkingValue) parkingValue.textContent = minParking + "+";
+
+			const selectedCurrency = (document.querySelector('input[name="currencyType"]:checked') as HTMLInputElement).value;
+
+			// Update note based on currency
+			const priceNote = document.getElementById('priceRangeNote');
+			if (priceNote) {
+				if (selectedCurrency === 'USD') {
+					priceNote.textContent = 'Precios en dólares estadounidenses ($)';
+				} else {
+					priceNote.textContent = 'Precios en colones costarricenses (₡)';
+				}
+			}
 
 			let visibleCards = [];
 			cards.forEach(card => visibleCards.push({ card: card, element: card }));
@@ -312,8 +375,13 @@ const base = import.meta.env.BASE_URL;
 				const cardLocation = card.getAttribute('data-location');
 				const cardPropertyType = card.getAttribute('data-property-type');
 				const cardStatus = card.getAttribute('data-status');
-				const cardBeds = parseInt(card.getAttribute('data-beds'));
-				const cardPrice = parseFloat(card.getAttribute('data-price'));
+				const cardBeds = parseInt(card.getAttribute('data-beds') || '0');
+				const cardBaths = parseInt(card.getAttribute('data-baths') || '0');
+				const cardParking = parseInt(card.getAttribute('data-parking') || '0');
+				const cardArea = parseFloat(card.getAttribute('data-area-val') || '0');
+				const cardPrice = selectedCurrency === 'USD' 
+					? parseFloat(card.getAttribute('data-price-usd') || '0') 
+					: parseFloat(card.getAttribute('data-price') || '0');
 				
 				let show = true;
 
@@ -340,6 +408,21 @@ const base = import.meta.env.BASE_URL;
 
 				// Filter by Beds 
 				if (cardBeds < minBeds) {
+					show = false;
+				}
+
+				// Filter by Baths
+				if (cardBaths < minBaths) {
+					show = false;
+				}
+
+				// Filter by Parking
+				if (cardParking < minParking) {
+					show = false;
+				}
+
+				// Filter by Area
+				if (cardArea < minArea || cardArea > maxArea) {
 					show = false;
 				}
 
@@ -384,8 +467,22 @@ const base = import.meta.env.BASE_URL;
 		document.getElementById('statusFilter').addEventListener('change', filterProperties);
 		document.getElementById('sortFilter').addEventListener('change', filterProperties);
 		bedsInput.addEventListener('input', filterProperties);
-		document.getElementById('minPrice').addEventListener('input', filterProperties);
+		bathsInput.addEventListener('input', filterProperties);
+		parkingInput.addEventListener('input', filterProperties);
+		document.getElementById('minArea')?.addEventListener('input', filterProperties);
+		document.getElementById('maxArea')?.addEventListener('input', filterProperties);
+		document.getElementById('minPrice')?.addEventListener('input', filterProperties);
 		document.getElementById('maxPrice').addEventListener('input', filterProperties);
+		document.querySelectorAll('input[name="currencyType"]').forEach(radio => {
+			radio.addEventListener('change', () => {
+				// Clear current inputs when switching currency to respect "excluyentes" feel
+				const minInput = document.getElementById('minPrice');
+				const maxInput = document.getElementById('maxPrice');
+				if (minInput instanceof HTMLInputElement) minInput.value = '';
+				if (maxInput instanceof HTMLInputElement) maxInput.value = '';
+				filterProperties();
+			});
+		});
 		
 		resetBtn.addEventListener('click', () => {
 			document.querySelector('input[name="operationType"][value="all"]').checked = true;
@@ -394,8 +491,13 @@ const base = import.meta.env.BASE_URL;
 			document.getElementById('statusFilter').value = 'all';
 			document.getElementById('sortFilter').value = 'default';
 			bedsInput.value = '1';
-			document.getElementById('minPrice').value = '';
-			document.getElementById('maxPrice').value = '';
+			bathsInput.value = '1';
+			parkingInput.value = '0';
+			(document.getElementById('minPrice') as HTMLInputElement).value = '';
+			(document.getElementById('maxPrice') as HTMLInputElement).value = '';
+			(document.getElementById('minArea') as HTMLInputElement).value = '';
+			(document.getElementById('maxArea') as HTMLInputElement).value = '';
+			(document.querySelector('input[name="currencyType"][value="CRC"]') as HTMLInputElement).checked = true;
 			filterProperties();
 		});
 
@@ -571,6 +673,44 @@ const base = import.meta.env.BASE_URL;
 		padding: 0.6rem;
 		border: 1px solid #ddd;
 		border-radius: 4px;
+	}
+
+	.currency-selector {
+		display: flex;
+		background: #f0f0f0;
+		padding: 4px;
+		border-radius: 6px;
+		margin-bottom: 1rem;
+	}
+
+	.currency-radio {
+		flex: 1;
+		cursor: pointer;
+		position: relative;
+	}
+
+	.currency-radio input {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.radio-label {
+		display: block;
+		padding: 0.5rem;
+		text-align: center;
+		font-size: 0.85rem;
+		border-radius: 4px;
+		transition: all 0.2s;
+		font-weight: 500;
+		color: var(--text-muted);
+	}
+
+	.currency-radio input:checked + .radio-label {
+		background: #fff;
+		color: var(--primary);
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 	}
 
 	.full-width {
