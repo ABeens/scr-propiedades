@@ -131,7 +131,8 @@ const base = import.meta.env.BASE_URL;
 				</div>
 				<div class="property-grid" id="propertiesGrid">
 					{properties.map(prop => (
-						<div class="property-card" 
+						<a href={`${base}/propiedad/${prop.id}`} 
+							 class="property-card" 
 							 data-type={prop.type} 
 							 data-location={prop.location} 
 							 data-beds={prop.beds}
@@ -151,9 +152,8 @@ const base = import.meta.env.BASE_URL;
 									<span>{prop.beds > 0 ? `${prop.beds} Hab` : 'Residencial'}</span>
 									<span class="status-tag">{prop.status}</span>
 								</div>
-								<a href={`${base}/propiedad/${prop.id}`} class="btn-details">Ver Detalles</a>
 							</div>
-						</div>
+						</a>
 					))}
 				</div>
 			</div>
@@ -589,6 +589,8 @@ const base = import.meta.env.BASE_URL;
 		border-radius: 8px;
 		overflow: hidden;
 		transition: transform 0.3s, box-shadow 0.3s;
+		color: inherit !important;
+		display: block;
 	}
 
 	.property-card:hover {
@@ -649,7 +651,8 @@ const base = import.meta.env.BASE_URL;
 	}
 
 	.price-usd {
-		color: var(--accent);
+		color: var(--text-muted);
+		font-weight: 500;
 	}
 
 	.specs {
@@ -660,25 +663,6 @@ const base = import.meta.env.BASE_URL;
 		border-top: 1px solid #f0f0f0;
 		padding-top: 1rem;
 		margin-bottom: 1rem;
-	}
-
-	.btn-details {
-		display: block;
-		width: 100%;
-		padding: 0.8rem;
-		background: var(--primary);
-		color: var(--white);
-		border: none;
-		font-family: inherit;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background 0.3s;
-		text-align: center;
-		text-decoration: none;
-	}
-
-	.btn-details:hover {
-		background: #333;
 	}
 
 	.no-results {
