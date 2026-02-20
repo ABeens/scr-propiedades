@@ -255,15 +255,39 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 	const lightbox = document.getElementById('lightbox');
 	const lightboxImg = document.getElementById('lightboxImg') as HTMLImageElement;
 	const lightboxClose = document.getElementById('lightboxClose');
+	const prevBtn = document.getElementById('prevBtn');
+	const nextBtn = document.getElementById('nextBtn');
 
-	galleryItems.forEach(img => {
+	let currentIndex = 0;
+	const images = Array.from(galleryItems).map(img => (img as HTMLImageElement).src);
+
+	function showImage(index: number) {
+		if (index < 0) index = images.length - 1;
+		if (index >= images.length) index = 0;
+		currentIndex = index;
+		if (lightboxImg) {
+			lightboxImg.src = images[currentIndex];
+		}
+	}
+
+	galleryItems.forEach((img, index) => {
 		img.addEventListener('click', () => {
 			if (lightbox && lightboxImg) {
-				lightboxImg.src = (img as HTMLImageElement).src;
+				showImage(index);
 				lightbox.classList.add('active');
 				document.body.style.overflow = 'hidden';
 			}
 		});
+	});
+
+	prevBtn?.addEventListener('click', (e) => {
+		e.stopPropagation();
+		showImage(currentIndex - 1);
+	});
+
+	nextBtn?.addEventListener('click', (e) => {
+		e.stopPropagation();
+		showImage(currentIndex + 1);
 	});
 
 	lightboxClose?.addEventListener('click', () => {
@@ -274,6 +298,18 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 	lightbox?.addEventListener('click', (e) => {
 		if (e.target === lightbox) {
 			lightbox.classList.remove('active');
+			document.body.style.overflow = '';
+		}
+	});
+
+	// Keyboard navigation
+	document.addEventListener('keydown', (e) => {
+		if (!lightbox?.classList.contains('active')) return;
+		
+		if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+		if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+		if (e.key === 'Escape') {
+			lightbox?.classList.remove('active');
 			document.body.style.overflow = '';
 		}
 	});
@@ -316,7 +352,9 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 <!-- Lightbox -->
 <div id="lightbox" class="lightbox">
 	<button id="lightboxClose" class="lightbox-close">&times;</button>
+	<button id="prevBtn" class="lightbox-nav prev" aria-label="Anterior">&lsaquo;</button>
 	<img id="lightboxImg" src="" alt="Vista ampliada" />
+	<button id="nextBtn" class="lightbox-nav next" aria-label="Siguiente">&rsaquo;</button>
 </div>
 
 <style>
@@ -709,6 +747,47 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 		font-size: 2.5rem;
 		cursor: pointer;
 		line-height: 1;
+		z-index: 1010;
+	}
+
+	.lightbox-nav {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		background: rgba(255,255,255,0.1);
+		border: none;
+		color: #fff;
+		font-size: 4rem;
+		width: 60px;
+		height: 60px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.3s;
+		border-radius: 50%;
+		user-select: none;
+		z-index: 1010;
+	}
+
+	.lightbox-nav:hover {
+		background: rgba(255,255,255,0.2);
+		color: var(--accent);
+	}
+
+	.lightbox-nav.prev { left: 2rem; }
+	.lightbox-nav.next { right: 2rem; }
+
+	@media (max-width: 850px) {
+		.lightbox-nav {
+			width: 40px;
+			height: 40px;
+			font-size: 2.5rem;
+			background: rgba(0,0,0,0.3);
+		}
+		.lightbox-nav.prev { left: 1rem; }
+		.lightbox-nav.next { right: 1rem; }
+		.lightbox-close { right: 1rem; top: 1rem; }
 	}
 
 	/* Footer */
