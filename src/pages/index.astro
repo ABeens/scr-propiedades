@@ -75,6 +75,7 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 							<div class="card-specs">
 								<div class="spec-main-row">
 									<span class="spec-label">{prop.propertyType}</span>
+									<span class="status-tag">{prop.status}</span>
 								</div>
 								<div class="spec-icons-row">
 									{prop.beds > 0 && (
@@ -475,6 +476,10 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 
 	.spec-main-row {
 		margin-bottom: 0.8rem;
+		display: flex;
+		justify-content: flex-start;
+		gap: 0.8rem;
+		align-items: center;
 	}
 
 	.spec-icons-row {
@@ -506,6 +511,18 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 		font-size: 0.85rem;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
+	}
+
+	.status-tag {
+		font-size: 0.65rem;
+		background: #fcf8f1;
+		color: #a17d3a;
+		padding: 0.2rem 0.6rem;
+		border-radius: 4px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		border: 1px solid #e5d5b5;
 	}
 
 	.cta {

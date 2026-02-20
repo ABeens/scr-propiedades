@@ -15,7 +15,7 @@ export const properties = [
 		area: "350 m²",
 		parking: 2,
 		propertyType: "Casa",
-		status: "Entrega Inmediata",
+		status: "Disponible",
 		description: "Espectacular residencia de líneas modernas ubicada en una de las zonas más exclusivas de Escazú. Cuenta con amplios espacios, acabados de primera calidad, cocina equipada, terraza con vista al valle central y jardín privado. Perfecta para familias que buscan comodidad y elegancia.",
 		images: [
 			"https://homepropertiescostarica.com/wp-content/uploads/2021/04/bonavista-cocina-comedor-sala-A-min-960x600.jpg",
@@ -100,8 +100,7 @@ export const properties = [
 		area: "280 m²",
 		parking: 2,
 		propertyType: "Apartamento",
-		status: "Entrega Inmediata",
-		description: "Penthouse de lujo con vista 360° al Parque La Sabana y las montañas. Doble altura, terraza privada, jacuzzi, acabados importados y domótica. Ubicación privilegiada a pasos de restaurantes, centros comerciales y el parque.",
+		status: "Disponible",
 		images: [
 			"https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
 			"https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
@@ -184,7 +183,7 @@ export const properties = [
 		area: "650 m²",
 		parking: 4,
 		propertyType: "Casa",
-		status: "Entrega Inmediata",
+		status: "Inversión",
 		description: "Majestuosa mansión en el exclusivo sector de Lindora. Arquitectura de autor, materiales importados, home theater, bodega de vinos, piscina climatizada, jardines manicurados y seguridad 24/7. El máximo nivel de vida en Costa Rica.",
 		images: [
 			"https://escazu-properties.com/cache/7b1cfd3f91cd961601b28e09051ed609_w1280.jpg",
@@ -241,7 +240,7 @@ export const properties = [
 		area: "1,200 m²",
 		parking: 0,
 		propertyType: "Lote",
-		status: "Entrega Inmediata",
+		status: "Disponible",
 		description: "Exclusivo lote residencial en Playa Flamingo con vista al mar. Terreno plano listo para construir, acceso a servicios públicos, en comunidad cerrada con seguridad. A minutos de la playa y del aeropuerto de Liberia.",
 		images: [
 			"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
@@ -294,7 +293,7 @@ export const properties = [
 		area: "50,000 m²",
 		parking: 0,
 		propertyType: "Finca",
-		status: "Entrega Inmediata",
+		status: "Disponible",
 		description: "Hermosa finca de 5 hectáreas con topografía plana y ondulada suave. Cuenta con nacientes de agua, empastada, cercas en buen estado y acceso por calle pública. Ideal para proyecto ganadero o desarrollo turístico.",
 		images: [
 			"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
