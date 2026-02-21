@@ -55,7 +55,7 @@ const base = import.meta.env.BASE_URL;
 						<option value="price_desc">Precio: Mayor a Menor</option>
 					</select>
 				</div>
-				
+
 				<div class="filter-group">
 					<h3>Tipo de Operación</h3>
 					<div class="radio-group">
@@ -82,27 +82,27 @@ const base = import.meta.env.BASE_URL;
 						<option value="Lote">Lote</option>
 					</select>
 				</div>
-				
+
 				<div class="filter-group">
 					<h3>Estatus</h3>
 					<select id="statusFilter">
 						<option value="all">Cualquier estatus</option>
-						<option value="Entrega Inmediata">Entrega Inmediata</option>
-						<option value="Preventa">Preventa</option>
-						<option value="Disponible">Disponible</option>
+						<option value="invest">Inversión</option>
+						<option value="presale">Preventa</option>
+						<option value="available">Disponible</option>
 					</select>
 				</div>
 
 				<div class="filter-group">
 					<h3>Ubicación</h3>
-					<select id="locationFilter">
-						<option value="all">Todas las ubicaciones</option>
-						<option value="Escazú">Escazú</option>
-						<option value="Santa Ana">Santa Ana</option>
-						<option value="San José">San José</option>
-						<option value="Guanacaste">Guanacaste</option>
-						<option value="Heredia">Heredia</option>
-						<option value="Alajuela">Alajuela</option>
+					<select id="provinciaFilter">
+						<option value="all">Todas las provincias</option>
+					</select>
+					<select id="cantonFilter" disabled>
+						<option value="all">Todos los cantones</option>
+					</select>
+					<select id="distritoFilter" disabled>
+						<option value="all">Todos los distritos</option>
 					</select>
 				</div>
 
@@ -163,17 +163,19 @@ const base = import.meta.env.BASE_URL;
 				<button id="applyFilters" class="btn-primary full-width mobile-only">Aplicar Filtros</button>
 				<button id="resetFilters" class="btn-clear">Limpiar Filtros</button>
 			</aside>
-            
+
 			<div class="properties-list">
 				<div id="noResults" class="no-results hidden">
 					<p>No se encontraron propiedades con los filtros seleccionados.</p>
 				</div>
 				<div class="property-grid" id="propertiesGrid">
 					{properties.map(prop => (
-						<a href={`${base}/propiedad/${prop.id}`} 
-							 class="property-card" 
-							 data-type={prop.type} 
-							 data-location={prop.location} 
+						<a href={`${base}/propiedad/${prop.id}`}
+							 class="property-card"
+							 data-type={prop.type}
+							 data-provincia={prop.provinciaId}
+							 data-canton={prop.cantonId}
+							 data-distrito={prop.distritoId}
 							 data-beds={prop.beds}
 							 data-baths={prop.baths}
 							 data-parking={prop.parking}
@@ -194,7 +196,7 @@ const base = import.meta.env.BASE_URL;
 									{prop.location}
 								</p>
 								<p class="price">{prop.priceDisplay} | <span class="price-usd">{prop.priceDisplayUSD}</span></p>
-								
+
 								<div class="card-specs">
 									<div class="spec-main-row">
 										<span class="spec-label">{prop.propertyType}</span>
@@ -259,7 +261,9 @@ const base = import.meta.env.BASE_URL;
 <script>
 	document.addEventListener('DOMContentLoaded', () => {
 		const typeRadios = document.querySelectorAll('input[name="operationType"]');
-		const locationSelect = document.getElementById('locationFilter');
+		const provinciaSelect = document.getElementById('provinciaFilter') as HTMLSelectElement;
+		const cantonSelect = document.getElementById('cantonFilter') as HTMLSelectElement;
+		const distritoSelect = document.getElementById('distritoFilter') as HTMLSelectElement;
 		const bedsInput = document.getElementById('bedsFilter') as HTMLInputElement;
 		const bedsValue = document.getElementById('bedsValue');
 		const bathsInput = document.getElementById('bathsFilter') as HTMLInputElement;
@@ -280,21 +284,21 @@ const base = import.meta.env.BASE_URL;
 		if (openFiltersBtn) {
 			openFiltersBtn.addEventListener('click', () => {
 				filtersSidebar.classList.add('active');
-				document.body.style.overflow = 'hidden'; // Prevent background scrolling
+				document.body.style.overflow = 'hidden';
 			});
 		}
 
-		function closeFilters() {
+		function closeFiltersPanel() {
 			filtersSidebar.classList.remove('active');
 			document.body.style.overflow = '';
 		}
 
 		if (closeFiltersBtn) {
-			closeFiltersBtn.addEventListener('click', closeFilters);
+			closeFiltersBtn.addEventListener('click', closeFiltersPanel);
 		}
 
 		if (applyFiltersBtn) {
-			applyFiltersBtn.addEventListener('click', closeFilters);
+			applyFiltersBtn.addEventListener('click', closeFiltersPanel);
 		}
 
 		// Hamburger menu
@@ -315,7 +319,7 @@ const base = import.meta.env.BASE_URL;
 			});
 		});
 
-		// Close filters when clicking outside (optional, but good UX)
+		// Close filters when clicking outside
 		filtersSidebar.addEventListener('click', (e) => {
 			if (e.target === filtersSidebar) {
 				filtersSidebar.classList.remove('active');
@@ -323,12 +327,87 @@ const base = import.meta.env.BASE_URL;
 			}
 		});
 
+		// --- Cascading Location Filters ---
+		const API_BASE = 'https://ubicaciones.paginasweb.cr';
+
+		async function loadProvincias() {
+			try {
+				const res = await fetch(`${API_BASE}/provincias.json`);
+				const data = await res.json();
+				Object.entries(data).forEach(([id, name]) => {
+					const opt = document.createElement('option');
+					opt.value = id;
+					opt.textContent = name as string;
+					provinciaSelect.appendChild(opt);
+				});
+			} catch (e) {
+				console.error('Error loading provincias:', e);
+			}
+		}
+
+		async function loadCantones(provinciaId: string) {
+			cantonSelect.innerHTML = '<option value="all">Todos los cantones</option>';
+			cantonSelect.disabled = true;
+			distritoSelect.innerHTML = '<option value="all">Todos los distritos</option>';
+			distritoSelect.disabled = true;
+			if (provinciaId === 'all') return;
+			try {
+				const res = await fetch(`${API_BASE}/provincia/${provinciaId}/cantones.json`);
+				const data = await res.json();
+				Object.entries(data).forEach(([id, name]) => {
+					const opt = document.createElement('option');
+					opt.value = id;
+					opt.textContent = name as string;
+					cantonSelect.appendChild(opt);
+				});
+				cantonSelect.disabled = false;
+			} catch (e) {
+				console.error('Error loading cantones:', e);
+			}
+		}
+
+		async function loadDistritos(provinciaId: string, cantonId: string) {
+			distritoSelect.innerHTML = '<option value="all">Todos los distritos</option>';
+			distritoSelect.disabled = true;
+			if (cantonId === 'all') return;
+			try {
+				const res = await fetch(`${API_BASE}/provincia/${provinciaId}/canton/${cantonId}/distritos.json`);
+				const data = await res.json();
+				Object.entries(data).forEach(([id, name]) => {
+					const opt = document.createElement('option');
+					opt.value = id;
+					opt.textContent = name as string;
+					distritoSelect.appendChild(opt);
+				});
+				distritoSelect.disabled = false;
+			} catch (e) {
+				console.error('Error loading distritos:', e);
+			}
+		}
+
+		provinciaSelect.addEventListener('change', async () => {
+			await loadCantones(provinciaSelect.value);
+			filterProperties();
+		});
+
+		cantonSelect.addEventListener('change', async () => {
+			await loadDistritos(provinciaSelect.value, cantonSelect.value);
+			filterProperties();
+		});
+
+		distritoSelect.addEventListener('change', () => {
+			filterProperties();
+		});
+
+		// Load provincias on init
+		loadProvincias();
+
 		// Check URL params specifically for 'type'
 		const urlParams = new URLSearchParams(window.location.search);
 		const typeParam = urlParams.get('type');
-		
+
 		if (typeParam) {
-			const radio = document.querySelector(`input[name="operationType"][value="${typeParam}"]`);
+			const radio = document.querySelector(`input[name="operationType"][value="${typeParam}"]`) as HTMLInputElement;
 			if (radio) {
 				radio.checked = true;
 				filterProperties();
@@ -336,11 +415,13 @@ const base = import.meta.env.BASE_URL;
 		}
 
 		function filterProperties() {
-			const selectedType = document.querySelector('input[name="operationType"]:checked').value;
-			const selectedLocation = locationSelect.value;
-			const selectedCategory = document.getElementById('propertyTypeFilter').value;
-			const selectedStatus = document.getElementById('statusFilter').value;
-			const selectedSort = document.getElementById('sortFilter').value;
+			const selectedType = (document.querySelector('input[name="operationType"]:checked') as HTMLInputElement).value;
+			const selectedProvincia = provinciaSelect.value;
+			const selectedCanton = cantonSelect.value;
+			const selectedDistrito = distritoSelect.value;
+			const selectedCategory = (document.getElementById('propertyTypeFilter') as HTMLSelectElement).value;
+			const selectedStatus = (document.getElementById('statusFilter') as HTMLSelectElement).value;
+			const selectedSort = (document.getElementById('sortFilter') as HTMLSelectElement).value;
 			const minBeds = parseInt(bedsInput.value);
 			const minBaths = parseInt(bathsInput.value);
 			const minParking = parseInt(parkingInput.value);
@@ -366,33 +447,41 @@ const base = import.meta.env.BASE_URL;
 				}
 			}
 
-			let visibleCards = [];
-			cards.forEach(card => visibleCards.push({ card: card, element: card }));
-
 			// Filtering
 			cards.forEach(card => {
 				const cardType = card.getAttribute('data-type');
-				const cardLocation = card.getAttribute('data-location');
+				const cardProvincia = card.getAttribute('data-provincia');
+				const cardCanton = card.getAttribute('data-canton');
+				const cardDistrito = card.getAttribute('data-distrito');
 				const cardPropertyType = card.getAttribute('data-property-type');
 				const cardStatus = card.getAttribute('data-status');
 				const cardBeds = parseInt(card.getAttribute('data-beds') || '0');
 				const cardBaths = parseInt(card.getAttribute('data-baths') || '0');
 				const cardParking = parseInt(card.getAttribute('data-parking') || '0');
 				const cardArea = parseFloat(card.getAttribute('data-area-val') || '0');
-				const cardPrice = selectedCurrency === 'USD' 
-					? parseFloat(card.getAttribute('data-price-usd') || '0') 
+				const cardPrice = selectedCurrency === 'USD'
+					? parseFloat(card.getAttribute('data-price-usd') || '0')
 					: parseFloat(card.getAttribute('data-price') || '0');
-				
+
 				let show = true;
 
 				// Filter by Type (Venta/Renta)
 				if (selectedType !== 'all' && cardType !== selectedType) {
-					console.log('Filtered by Type', cardType, selectedType);
 					show = false;
 				}
 
-				// Filter by Location
-				if (selectedLocation !== 'all' && !cardLocation.includes(selectedLocation)) {
+				// Filter by Provincia
+				if (selectedProvincia !== 'all' && cardProvincia !== selectedProvincia) {
+					show = false;
+				}
+
+				// Filter by Canton
+				if (selectedCanton !== 'all' && cardCanton !== selectedCanton) {
+					show = false;
+				}
+
+				// Filter by Distrito
+				if (selectedDistrito !== 'all' && cardDistrito !== selectedDistrito) {
 					show = false;
 				}
 
@@ -406,7 +495,7 @@ const base = import.meta.env.BASE_URL;
 					show = false;
 				}
 
-				// Filter by Beds 
+				// Filter by Beds
 				if (cardBeds < minBeds) {
 					show = false;
 				}
@@ -432,26 +521,25 @@ const base = import.meta.env.BASE_URL;
 				}
 
 				if (show) {
-					card.style.display = 'block';
+					(card as HTMLElement).style.display = 'block';
 					card.classList.remove('hidden-card');
 				} else {
-					card.style.display = 'none';
+					(card as HTMLElement).style.display = 'none';
 					card.classList.add('hidden-card');
 				}
 			});
 
 			// Sorting
 			const visibleItems = Array.from(cards).filter(card => !card.classList.contains('hidden-card'));
-			
+
 			if (selectedSort === 'price_asc') {
 				visibleItems.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
 			} else if (selectedSort === 'price_desc') {
 				visibleItems.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
 			}
-			
+
 			// Re-append in correct order
 			visibleItems.forEach(card => grid.appendChild(card));
-
 
 			if (visibleItems.length === 0) {
 				noResults.classList.remove('hidden');
@@ -462,7 +550,6 @@ const base = import.meta.env.BASE_URL;
 
 		// Event Listeners
 		typeRadios.forEach(radio => radio.addEventListener('change', filterProperties));
-		locationSelect.addEventListener('change', filterProperties);
 		document.getElementById('propertyTypeFilter').addEventListener('change', filterProperties);
 		document.getElementById('statusFilter').addEventListener('change', filterProperties);
 		document.getElementById('sortFilter').addEventListener('change', filterProperties);
@@ -475,7 +562,6 @@ const base = import.meta.env.BASE_URL;
 		document.getElementById('maxPrice').addEventListener('input', filterProperties);
 		document.querySelectorAll('input[name="currencyType"]').forEach(radio => {
 			radio.addEventListener('change', () => {
-				// Clear current inputs when switching currency to respect "excluyentes" feel
 				const minInput = document.getElementById('minPrice');
 				const maxInput = document.getElementById('maxPrice');
 				if (minInput instanceof HTMLInputElement) minInput.value = '';
@@ -483,13 +569,17 @@ const base = import.meta.env.BASE_URL;
 				filterProperties();
 			});
 		});
-		
+
 		resetBtn.addEventListener('click', () => {
-			document.querySelector('input[name="operationType"][value="all"]').checked = true;
-			locationSelect.value = 'all';
-			document.getElementById('propertyTypeFilter').value = 'all';
-			document.getElementById('statusFilter').value = 'all';
-			document.getElementById('sortFilter').value = 'default';
+			(document.querySelector('input[name="operationType"][value="all"]') as HTMLInputElement).checked = true;
+			provinciaSelect.value = 'all';
+			cantonSelect.innerHTML = '<option value="all">Todos los cantones</option>';
+			cantonSelect.disabled = true;
+			distritoSelect.innerHTML = '<option value="all">Todos los distritos</option>';
+			distritoSelect.disabled = true;
+			(document.getElementById('propertyTypeFilter') as HTMLSelectElement).value = 'all';
+			(document.getElementById('statusFilter') as HTMLSelectElement).value = 'all';
+			(document.getElementById('sortFilter') as HTMLSelectElement).value = 'default';
 			bedsInput.value = '1';
 			bathsInput.value = '1';
 			parkingInput.value = '0';
@@ -500,8 +590,6 @@ const base = import.meta.env.BASE_URL;
 			(document.querySelector('input[name="currencyType"][value="CRC"]') as HTMLInputElement).checked = true;
 			filterProperties();
 		});
-
-		// Initial filter maybe run once? usually not needed unless url params
 	});
 </script>
 
@@ -634,6 +722,10 @@ const base = import.meta.env.BASE_URL;
 		background: #fff;
 		font-family: inherit;
 		color: var(--text-main);
+	}
+
+	#provinciaFilter, #cantonFilter, #distritoFilter {
+		margin-bottom: 0.5rem;
 	}
 
 	.range-wrapper {
@@ -1109,7 +1201,7 @@ const base = import.meta.env.BASE_URL;
 			gap: 2rem;
 		}
 	}
-	
+
 	.status-tag {
 		color: var(--accent);
 		font-weight: 500;
