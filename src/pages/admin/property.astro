@@ -1,0 +1,484 @@
+---
+const { env } = Astro.locals.runtime;
+const id = Astro.url.searchParams.get('id');
+let property: any = null;
+
+if (id) {
+	const row: any = await env.DB.prepare('SELECT * FROM properties WHERE id = ?').bind(id).first();
+	if (row) {
+		property = {
+			...row,
+			images: JSON.parse(row.images || '[]'),
+		};
+	}
+}
+
+const isEdit = !!property;
+const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>{title} - Admin SCR Propiedades</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+	<header class="admin-header">
+		<div class="header-inner">
+			<h1>SCR Propiedades - Admin</h1>
+			<a href="/admin" class="btn-link">&larr; Volver al listado</a>
+		</div>
+	</header>
+
+	<main class="admin-main">
+		<h2>{title}</h2>
+
+		<form id="propertyForm" class="property-form">
+			<input type="hidden" id="propertyId" value={property?.id || ''} />
+
+			<div class="form-grid">
+				<div class="form-section">
+					<h3>Información General</h3>
+
+					<div class="field">
+						<label for="title">Título *</label>
+						<input type="text" id="title" name="title" required value={property?.title || ''} />
+					</div>
+
+					<div class="field-row">
+						<div class="field">
+							<label for="type">Operación *</label>
+							<select id="type" name="type" required>
+								<option value="sale" selected={property?.type === 'sale'}>Venta</option>
+								<option value="rent" selected={property?.type === 'rent'}>Alquiler</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="property_type">Tipo de Propiedad *</label>
+							<select id="property_type" name="property_type" required>
+								<option value="Casa" selected={property?.property_type === 'Casa'}>Casa</option>
+								<option value="Apartamento" selected={property?.property_type === 'Apartamento'}>Apartamento</option>
+								<option value="Comercial" selected={property?.property_type === 'Comercial'}>Comercial</option>
+								<option value="Finca" selected={property?.property_type === 'Finca'}>Finca</option>
+								<option value="Lote" selected={property?.property_type === 'Lote'}>Lote</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="status">Estado</label>
+							<select id="status" name="status">
+								<option value="available" selected={property?.status === 'available'}>Disponible</option>
+								<option value="presale" selected={property?.status === 'presale'}>Preventa</option>
+								<option value="Inversión" selected={property?.status === 'Inversión'}>Inversión</option>
+								<option value="sold" selected={property?.status === 'sold'}>Vendido</option>
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Precios</h3>
+					<div class="field-row">
+						<div class="field">
+							<label for="price">Precio (₡) *</label>
+							<input type="number" id="price" name="price" required value={property?.price || ''} />
+						</div>
+						<div class="field">
+							<label for="price_display">Precio Mostrado (₡) *</label>
+							<input type="text" id="price_display" name="price_display" required value={property?.price_display || ''} placeholder="₡620,000,000" />
+						</div>
+					</div>
+					<div class="field-row">
+						<div class="field">
+							<label for="price_usd">Precio (USD) *</label>
+							<input type="number" id="price_usd" name="price_usd" required value={property?.price_usd || ''} />
+						</div>
+						<div class="field">
+							<label for="price_display_usd">Precio Mostrado (USD) *</label>
+							<input type="text" id="price_display_usd" name="price_display_usd" required value={property?.price_display_usd || ''} placeholder="$1,215,686" />
+						</div>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Ubicación</h3>
+					<div class="field">
+						<label for="location">Ubicación *</label>
+						<input type="text" id="location" name="location" required value={property?.location || ''} placeholder="Escazú, San José" />
+					</div>
+					<div class="field-row">
+						<div class="field">
+							<label for="provincia_id">Provincia ID</label>
+							<input type="text" id="provincia_id" name="provincia_id" value={property?.provincia_id || ''} />
+						</div>
+						<div class="field">
+							<label for="canton_id">Cantón ID</label>
+							<input type="text" id="canton_id" name="canton_id" value={property?.canton_id || ''} />
+						</div>
+						<div class="field">
+							<label for="distrito_id">Distrito ID</label>
+							<input type="text" id="distrito_id" name="distrito_id" value={property?.distrito_id || ''} />
+						</div>
+					</div>
+					<div class="field-row">
+						<div class="field">
+							<label for="lat">Latitud</label>
+							<input type="number" id="lat" name="lat" step="any" value={property?.lat || ''} />
+						</div>
+						<div class="field">
+							<label for="lng">Longitud</label>
+							<input type="number" id="lng" name="lng" step="any" value={property?.lng || ''} />
+						</div>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Características</h3>
+					<div class="field-row">
+						<div class="field">
+							<label for="beds">Habitaciones</label>
+							<input type="number" id="beds" name="beds" min="0" value={property?.beds ?? 0} />
+						</div>
+						<div class="field">
+							<label for="baths">Baños</label>
+							<input type="number" id="baths" name="baths" min="0" step="0.5" value={property?.baths ?? 0} />
+						</div>
+						<div class="field">
+							<label for="area">Área *</label>
+							<input type="text" id="area" name="area" required value={property?.area || ''} placeholder="350 m²" />
+						</div>
+						<div class="field">
+							<label for="parking">Parqueos</label>
+							<input type="number" id="parking" name="parking" min="0" value={property?.parking ?? 0} />
+						</div>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Descripción</h3>
+					<div class="field">
+						<label for="description">Descripción</label>
+						<textarea id="description" name="description" rows="5">{property?.description || ''}</textarea>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Imágenes</h3>
+					<div class="field">
+						<label>Subir imágenes</label>
+						<div class="upload-area" id="uploadArea">
+							<input type="file" id="fileInput" multiple accept="image/*" />
+							<p>Arrastra imágenes aquí o haz clic para seleccionar</p>
+						</div>
+						<div id="uploadProgress" class="upload-progress hidden"></div>
+					</div>
+					<div class="field">
+						<label>Imágenes actuales</label>
+						<div id="imagesList" class="images-list">
+							{(property?.images || []).map((url: string, i: number) => (
+								<div class="image-item" data-url={url}>
+									<img src={url} alt={`Imagen ${i + 1}`} />
+									<button type="button" class="btn-remove-img" title="Eliminar">&times;</button>
+								</div>
+							))}
+						</div>
+						<div class="field" style="margin-top: 0.5rem;">
+							<label for="manualImageUrl">Agregar URL de imagen</label>
+							<div class="url-input-row">
+								<input type="text" id="manualImageUrl" placeholder="https://..." />
+								<button type="button" id="addUrlBtn" class="btn-sm btn-add-url">Agregar</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Contacto y Redes</h3>
+					<div class="field-row">
+						<div class="field">
+							<label for="contact_number">Número de Contacto</label>
+							<input type="text" id="contact_number" name="contact_number" value={property?.contact_number || '50670141868'} />
+						</div>
+						<div class="field">
+							<label for="instagram">Instagram</label>
+							<input type="url" id="instagram" name="instagram" value={property?.instagram || ''} />
+						</div>
+						<div class="field">
+							<label for="video">Video</label>
+							<input type="url" id="video" name="video" value={property?.video || ''} />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-actions">
+				<a href="/admin" class="btn-sm btn-cancel">Cancelar</a>
+				<button type="submit" class="btn-primary" id="submitBtn">
+					{isEdit ? 'Guardar Cambios' : 'Crear Propiedad'}
+				</button>
+			</div>
+		</form>
+	</main>
+</body>
+</html>
+
+<script>
+	const form = document.getElementById('propertyForm') as HTMLFormElement;
+	const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+	const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+	const uploadArea = document.getElementById('uploadArea') as HTMLDivElement;
+	const uploadProgress = document.getElementById('uploadProgress') as HTMLDivElement;
+	const imagesList = document.getElementById('imagesList') as HTMLDivElement;
+	const addUrlBtn = document.getElementById('addUrlBtn') as HTMLButtonElement;
+	const manualUrlInput = document.getElementById('manualImageUrl') as HTMLInputElement;
+
+	// Collect current image URLs
+	function getImageUrls(): string[] {
+		return Array.from(imagesList.querySelectorAll('.image-item'))
+			.map(item => item.getAttribute('data-url')!)
+			.filter(Boolean);
+	}
+
+	// Add image to list
+	function addImageToList(url: string) {
+		const div = document.createElement('div');
+		div.className = 'image-item';
+		div.setAttribute('data-url', url);
+		div.innerHTML = `<img src="${url}" alt="Imagen" /><button type="button" class="btn-remove-img" title="Eliminar">&times;</button>`;
+		div.querySelector('.btn-remove-img')!.addEventListener('click', () => div.remove());
+		imagesList.appendChild(div);
+	}
+
+	// Remove image buttons
+	document.querySelectorAll('.btn-remove-img').forEach(btn => {
+		btn.addEventListener('click', () => btn.closest('.image-item')!.remove());
+	});
+
+	// Add URL manually
+	addUrlBtn.addEventListener('click', () => {
+		const url = manualUrlInput.value.trim();
+		if (url) {
+			addImageToList(url);
+			manualUrlInput.value = '';
+		}
+	});
+
+	// Drag and drop
+	uploadArea.addEventListener('dragover', (e) => {
+		e.preventDefault();
+		uploadArea.classList.add('dragover');
+	});
+	uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+	uploadArea.addEventListener('drop', async (e) => {
+		e.preventDefault();
+		uploadArea.classList.remove('dragover');
+		if (e.dataTransfer?.files.length) {
+			await uploadFiles(e.dataTransfer.files);
+		}
+	});
+
+	fileInput.addEventListener('change', async () => {
+		if (fileInput.files?.length) {
+			await uploadFiles(fileInput.files);
+			fileInput.value = '';
+		}
+	});
+
+	async function uploadFiles(files: FileList) {
+		uploadProgress.classList.remove('hidden');
+		uploadProgress.textContent = `Subiendo ${files.length} imagen(es)...`;
+
+		const formData = new FormData();
+		for (const file of files) {
+			formData.append('files', file);
+		}
+
+		try {
+			const res = await fetch('/api/upload', { method: 'POST', body: formData });
+			const data = await res.json();
+
+			if (data.urls) {
+				data.urls.forEach((url: string) => addImageToList(url));
+				uploadProgress.textContent = `${data.urls.length} imagen(es) subida(s)`;
+			} else {
+				uploadProgress.textContent = `Error: ${data.error}`;
+			}
+		} catch (err) {
+			uploadProgress.textContent = 'Error al subir imágenes';
+		}
+
+		setTimeout(() => uploadProgress.classList.add('hidden'), 3000);
+	}
+
+	// Form submit
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		submitBtn.disabled = true;
+		submitBtn.textContent = 'Guardando...';
+
+		const propertyId = (document.getElementById('propertyId') as HTMLInputElement).value;
+		const isEdit = !!propertyId;
+
+		const body = {
+			title: (document.getElementById('title') as HTMLInputElement).value,
+			type: (document.getElementById('type') as HTMLSelectElement).value,
+			property_type: (document.getElementById('property_type') as HTMLSelectElement).value,
+			status: (document.getElementById('status') as HTMLSelectElement).value,
+			price: parseFloat((document.getElementById('price') as HTMLInputElement).value),
+			price_display: (document.getElementById('price_display') as HTMLInputElement).value,
+			price_usd: parseFloat((document.getElementById('price_usd') as HTMLInputElement).value),
+			price_display_usd: (document.getElementById('price_display_usd') as HTMLInputElement).value,
+			location: (document.getElementById('location') as HTMLInputElement).value,
+			provincia_id: (document.getElementById('provincia_id') as HTMLInputElement).value || null,
+			canton_id: (document.getElementById('canton_id') as HTMLInputElement).value || null,
+			distrito_id: (document.getElementById('distrito_id') as HTMLInputElement).value || null,
+			lat: parseFloat((document.getElementById('lat') as HTMLInputElement).value) || null,
+			lng: parseFloat((document.getElementById('lng') as HTMLInputElement).value) || null,
+			beds: parseInt((document.getElementById('beds') as HTMLInputElement).value) || 0,
+			baths: parseFloat((document.getElementById('baths') as HTMLInputElement).value) || 0,
+			area: (document.getElementById('area') as HTMLInputElement).value,
+			parking: parseInt((document.getElementById('parking') as HTMLInputElement).value) || 0,
+			description: (document.getElementById('description') as HTMLTextAreaElement).value || null,
+			images: getImageUrls(),
+			contact_number: (document.getElementById('contact_number') as HTMLInputElement).value || '50670141868',
+			instagram: (document.getElementById('instagram') as HTMLInputElement).value || null,
+			video: (document.getElementById('video') as HTMLInputElement).value || null,
+		};
+
+		try {
+			const url = isEdit ? `/api/properties/${propertyId}` : '/api/properties';
+			const method = isEdit ? 'PUT' : 'POST';
+
+			const res = await fetch(url, {
+				method,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body),
+			});
+
+			if (res.ok) {
+				window.location.href = '/admin';
+			} else {
+				const data = await res.json();
+				alert(`Error: ${data.error}`);
+				submitBtn.disabled = false;
+				submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Crear Propiedad';
+			}
+		} catch (err) {
+			alert('Error de conexión');
+			submitBtn.disabled = false;
+			submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Crear Propiedad';
+		}
+	});
+</script>
+
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	body { font-family: 'Inter', sans-serif; background: #f5f5f5; color: #333; }
+
+	.admin-header {
+		background: #1a1a1a; color: #fff; padding: 1rem 2rem;
+		position: sticky; top: 0; z-index: 100;
+	}
+	.header-inner {
+		max-width: 1200px; margin: 0 auto;
+		display: flex; justify-content: space-between; align-items: center;
+	}
+	.header-inner h1 { font-size: 1.1rem; font-weight: 600; }
+	.btn-link { color: #ccc; font-size: 0.85rem; text-decoration: none; }
+	.btn-link:hover { color: #fff; }
+
+	.admin-main { max-width: 900px; margin: 2rem auto; padding: 0 2rem; }
+	.admin-main > h2 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+
+	.property-form { }
+
+	.form-grid { display: flex; flex-direction: column; gap: 2rem; }
+
+	.form-section {
+		background: #fff; padding: 2rem; border-radius: 8px;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+	}
+	.form-section h3 {
+		font-size: 1rem; font-weight: 600; margin-bottom: 1.2rem;
+		padding-bottom: 0.5rem; border-bottom: 2px solid #c5a059;
+		display: inline-block;
+	}
+
+	.field { margin-bottom: 1rem; }
+	.field label { display: block; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.85rem; color: #555; }
+	.field input, .field select, .field textarea {
+		width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px;
+		font-family: inherit; font-size: 0.95rem;
+	}
+	.field input:focus, .field select:focus, .field textarea:focus {
+		outline: none; border-color: #1a1a1a;
+	}
+	.field textarea { resize: vertical; }
+
+	.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+
+	/* Upload area */
+	.upload-area {
+		border: 2px dashed #ddd; border-radius: 8px; padding: 2rem;
+		text-align: center; cursor: pointer; position: relative; transition: all 0.2s;
+	}
+	.upload-area:hover, .upload-area.dragover { border-color: #c5a059; background: #fffdf5; }
+	.upload-area input[type="file"] {
+		position: absolute; inset: 0; opacity: 0; cursor: pointer;
+	}
+	.upload-area p { color: #999; font-size: 0.9rem; }
+	.upload-progress { margin-top: 0.5rem; font-size: 0.85rem; color: #666; }
+	.upload-progress.hidden { display: none; }
+
+	/* Images list */
+	.images-list {
+		display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		gap: 0.5rem; margin-top: 0.5rem;
+	}
+	.image-item {
+		position: relative; border-radius: 4px; overflow: hidden;
+		border: 1px solid #eee; aspect-ratio: 4/3;
+	}
+	.image-item img { width: 100%; height: 100%; object-fit: cover; }
+	.btn-remove-img {
+		position: absolute; top: 4px; right: 4px;
+		width: 24px; height: 24px; border-radius: 50%;
+		background: rgba(0,0,0,0.6); color: #fff; border: none;
+		font-size: 1rem; cursor: pointer; display: flex;
+		align-items: center; justify-content: center; line-height: 1;
+	}
+	.btn-remove-img:hover { background: #c00; }
+
+	.url-input-row { display: flex; gap: 0.5rem; }
+	.url-input-row input { flex: 1; }
+	.btn-add-url { white-space: nowrap; }
+
+	/* Form actions */
+	.form-actions {
+		display: flex; justify-content: flex-end; gap: 1rem;
+		margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #eee;
+	}
+	.btn-primary {
+		background: #1a1a1a; color: #fff; padding: 0.8rem 2rem;
+		border: none; border-radius: 6px; font-weight: 600; font-size: 1rem;
+		cursor: pointer; transition: background 0.2s;
+	}
+	.btn-primary:hover { background: #333; }
+	.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+	.btn-sm {
+		display: inline-block; padding: 0.6rem 1.2rem; border-radius: 4px;
+		font-size: 0.9rem; font-weight: 500; cursor: pointer;
+		text-decoration: none; border: 1px solid #ddd; background: #fff; color: #333;
+	}
+	.btn-cancel:hover { border-color: #999; }
+
+	.hidden { display: none; }
+
+	@media (max-width: 768px) {
+		.field-row { grid-template-columns: 1fr; }
+	}
+</style>

@@ -5,10 +5,16 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "wrangler pages dev dist",
+    "deploy": "astro build && wrangler pages deploy dist",
+    "db:migrate:local": "wrangler d1 execute scr-propiedades-db --local --file=./schema.sql",
+    "db:seed:local": "wrangler d1 execute scr-propiedades-db --local --file=./seed.sql",
+    "db:migrate:remote": "wrangler d1 execute scr-propiedades-db --remote --file=./schema.sql",
+    "db:seed:remote": "wrangler d1 execute scr-propiedades-db --remote --file=./seed.sql",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.6.12",
     "astro": "^5.17.1"
   }
 }

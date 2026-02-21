@@ -1,9 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { properties } from "../data/properties";
 
+const { env } = Astro.locals.runtime;
+const { results } = await env.DB.prepare('SELECT * FROM properties ORDER BY created_at DESC LIMIT 3').all();
+const featured = results.map((row: any) => ({
+	...row,
+	images: JSON.parse(row.images || '[]'),
+	priceDisplay: row.price_display,
+	priceDisplayUSD: row.price_display_usd,
+	priceUSD: row.price_usd,
+	propertyType: row.property_type,
+	contactNumber: row.contact_number,
+}));
 const base = import.meta.env.BASE_URL;
-const featured = properties.slice(0, 3);
 const publishWhatsAppMessage = encodeURIComponent(
 	"Hola, me interesa publicar mi propiedad con ustedes.",
 );

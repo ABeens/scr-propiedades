@@ -1,21 +1,46 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { properties } from '../../data/properties';
 
-export function getStaticPaths() {
-	return properties.map(p => ({
-		params: { id: p.id },
-		props: { property: p },
-	}));
+const { id } = Astro.params;
+const { env } = Astro.locals.runtime;
+
+const row: any = await env.DB.prepare('SELECT * FROM properties WHERE id = ?').bind(id).first();
+
+if (!row) {
+	return new Response(null, { status: 404, statusText: 'Not Found' });
 }
 
-const { property } = Astro.props;
+const property = {
+	...row,
+	images: JSON.parse(row.images || '[]'),
+	priceDisplay: row.price_display,
+	priceDisplayUSD: row.price_display_usd,
+	priceUSD: row.price_usd,
+	propertyType: row.property_type,
+	contactNumber: row.contact_number,
+	provinciaId: row.provincia_id,
+	cantonId: row.canton_id,
+	distritoId: row.distrito_id,
+};
+
+// Get recommended properties (excluding current)
+const { results: recResults } = await env.DB.prepare('SELECT * FROM properties WHERE id != ? LIMIT 3').bind(id).all();
+const recommended = recResults.map((r: any) => ({
+	...r,
+	images: JSON.parse(r.images || '[]'),
+	priceDisplay: r.price_display,
+	priceDisplayUSD: r.price_display_usd,
+	priceUSD: r.price_usd,
+	propertyType: r.property_type,
+	contactNumber: r.contact_number,
+}));
+
 const base = import.meta.env.BASE_URL;
 
 const whatsappMessage = `Hola, me interesa la propiedad: ${property.title} (${property.priceDisplay} / ${property.priceDisplayUSD}). ¿Podrían darme más información?`;
 const whatsappLink = `https://wa.me/${property.contactNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
-const propertyUrl = `https://abeens.github.io${base}/propiedad/${property.id}`;
+const propertyUrl = `${Astro.url.origin}/propiedad/${property.id}`;
 const shareText = encodeURIComponent(`Mirá esta propiedad: ${property.title} - ${property.priceDisplay} (${property.priceDisplayUSD})\n${propertyUrl}`);
 const shareLink = `https://wa.me/?text=${shareText}`;
 ---
@@ -153,10 +178,7 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 			<h2>Propiedades Recomendadas</h2>
 		</div>
 		<div class="property-grid">
-			{properties
-				.filter(p => p.id !== property.id)
-				.slice(0, 3)
-				.map(prop => (
+			{recommended.map(prop => (
 					<a href={`${base}/propiedad/${prop.id}`} class="property-card">
 						<div class="card-image">
 							<img src={prop.images[0]} alt={prop.title} loading="lazy" />
