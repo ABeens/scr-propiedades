@@ -23,6 +23,36 @@ const property = {
 	distritoId: row.distrito_id,
 };
 
+// Resolve provincia/canton/distrito names
+const API_BASE = 'https://ubicaciones.paginasweb.cr';
+let provinciaName = '';
+let cantonName = '';
+let distritoName = '';
+
+try {
+	if (property.provinciaId) {
+		const provRes = await fetch(`${API_BASE}/provincias.json`);
+		const provincias = await provRes.json() as Record<string, string>;
+		provinciaName = provincias[property.provinciaId] || '';
+
+		if (property.cantonId) {
+			const cantRes = await fetch(`${API_BASE}/provincia/${property.provinciaId}/cantones.json`);
+			const cantones = await cantRes.json() as Record<string, string>;
+			cantonName = cantones[property.cantonId] || '';
+
+			if (property.distritoId) {
+				const distRes = await fetch(`${API_BASE}/provincia/${property.provinciaId}/canton/${property.cantonId}/distritos.json`);
+				const distritos = await distRes.json() as Record<string, string>;
+				distritoName = distritos[property.distritoId] || '';
+			}
+		}
+	}
+} catch (e) {
+	console.error('Error resolving location names:', e);
+}
+
+const locationParts = [provinciaName, cantonName, distritoName].filter(Boolean);
+
 // Get recommended properties (excluding current)
 const { results: recResults } = await env.DB.prepare('SELECT * FROM properties WHERE id != ? ORDER BY RANDOM() LIMIT 3').bind(id).all();
 const recommended = recResults.map((r: any) => ({
@@ -100,6 +130,16 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 					<div class="detail-location">
 						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
 						<span>{property.location}</span>
+					</div>
+				)}
+
+				{locationParts.length > 0 && (
+					<div class="detail-ubicacion">
+						<div class="ubicacion-tags">
+							{provinciaName && <span class="ubicacion-tag"><strong>Provincia:</strong> {provinciaName}</span>}
+							{cantonName && <span class="ubicacion-tag"><strong>Cantón:</strong> {cantonName}</span>}
+							{distritoName && <span class="ubicacion-tag"><strong>Distrito:</strong> {distritoName}</span>}
+						</div>
 					</div>
 				)}
 
@@ -520,6 +560,32 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 	.detail-location svg {
 		color: var(--accent);
 		flex-shrink: 0;
+	}
+
+	/* Ubicación administrativa */
+	.detail-ubicacion {
+		margin-bottom: 1.5rem;
+	}
+
+	.ubicacion-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+	}
+
+	.ubicacion-tag {
+		display: inline-block;
+		background: #f8f8f8;
+		border: 1px solid #eee;
+		border-radius: 4px;
+		padding: 0.35rem 0.8rem;
+		font-size: 0.85rem;
+		color: var(--text-muted);
+	}
+
+	.ubicacion-tag strong {
+		color: var(--primary);
+		font-weight: 600;
 	}
 
 	/* Price Row */
