@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import PropertyCard from "../components/PropertyCard.astro";
 
 const { env } = Astro.locals.runtime;
-const { results } = await env.DB.prepare('SELECT * FROM properties ORDER BY created_at DESC LIMIT 3').all();
+const { results } = await env.DB.prepare("SELECT * FROM properties WHERE status NOT IN ('sold', 'rented') ORDER BY created_at DESC LIMIT 3").all();
 const featured = results.map((row: any) => ({
 	...row,
 	images: JSON.parse(row.images || '[]'),

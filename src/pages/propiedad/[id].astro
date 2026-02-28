@@ -6,7 +6,7 @@ const { env } = Astro.locals.runtime;
 
 const row: any = await env.DB.prepare('SELECT * FROM properties WHERE id = ?').bind(id).first();
 
-if (!row) {
+if (!row || row.status === 'sold' || row.status === 'rented') {
 	return new Response(null, { status: 404, statusText: 'Not Found' });
 }
 
