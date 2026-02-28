@@ -22,23 +22,26 @@ export const onRequest = defineMiddleware(async ({ request, locals, redirect, ur
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/')) {
     const cookie = request.headers.get('cookie') || '';
     const sessionMatch = cookie.match(/admin-session=([^;]+)/);
-    const authHeader = request.headers.get('Authorization');
 
     let authenticated = false;
+    const { env } = locals.runtime;
+
+    let users: Record<string, string> = {};
+    try {
+      users = JSON.parse(env.ADMIN_USERS || '{}');
+    } catch {}
 
     if (sessionMatch) {
-      const token = sessionMatch[1];
-      // Simple token validation - the token is a hash of the password
-      const { env } = locals.runtime;
-      const expectedToken = await hashPassword(env.ADMIN_PASSWORD);
-      authenticated = token === expectedToken;
-    }
-
-    if (!authenticated && authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7);
-      const { env } = locals.runtime;
-      const expectedToken = await hashPassword(env.ADMIN_PASSWORD);
-      authenticated = token === expectedToken;
+      const sessionValue = decodeURIComponent(sessionMatch[1]);
+      const colonIdx = sessionValue.indexOf(':');
+      if (colonIdx > 0) {
+        const username = sessionValue.substring(0, colonIdx);
+        const token = sessionValue.substring(colonIdx + 1);
+        if (users[username]) {
+          const expectedToken = await hashPassword(username + ':' + users[username]);
+          authenticated = token === expectedToken;
+        }
+      }
     }
 
     if (!authenticated) {

@@ -13,7 +13,6 @@ const featured = results.map((row: any) => ({
 	propertyType: row.property_type,
 	contactNumber: row.contact_number,
 }));
-const base = import.meta.env.BASE_URL;
 const publishWhatsAppMessage = encodeURIComponent(
 	"Hola, me interesa publicar mi propiedad con ustedes.",
 );
@@ -25,7 +24,7 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 		<div class="container nav-wrapper">
 			<div class="logo">
 				<img
-					src={`${base}/main-logo-dark-mode.png`}
+					src={`/main-logo-dark-mode.png`}
 					alt="Main Logo"
 					height="80"
 				/>
@@ -37,8 +36,8 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 			</button>
 			<nav class="nav" id="mainNav">
 				<a href="#inicio">Inicio</a>
-				<a href={`${base}/catalog?type=sale`}>Comprar</a>
-				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
+				<a href={`/catalog?type=sale`}>Comprar</a>
+				<a href={`/catalog?type=rent`}>Alquilar</a>
 				<a href="#contacto" class="btn-outline">Contacto</a>
 			</nav>
 		</div>
@@ -52,10 +51,10 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 					muted
 					loop
 					playsinline
-					poster={`${base}/bg-min.png`}
+					poster={`/bg-white.png`}
 				>
-					<source src={`${base}/bg-video.mp4`} type="video/mp4" />
-					Tu navegador no soporta videos.
+					<source src={`/bg-video.mp4`} type="video/mp4" />
+					Su navegador no soporta videos.
 				</video>
 			</div>
 			<div class="container">
@@ -65,15 +64,15 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 
 					<div class="search-box">
 						<p class="search-label">
-							¿Qué deseas hacer? Nosotros te ayudamos
+							¿Qué desea hacer? Nosotros le ayudamos
 						</p>
 						<div class="search-buttons">
 							<a
-								href={`${base}/catalog?type=sale`}
+								href={`/catalog?type=sale`}
 								class="btn-option">Comprar</a
 							>
 							<a
-								href={`${base}/catalog?type=rent`}
+								href={`/catalog?type=rent`}
 								class="btn-option">Alquilar</a
 							>
 						</div>
@@ -108,7 +107,6 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 						propertyType={prop.propertyType}
 						status={prop.status}
 						image={prop.images[0]}
-						base={base}
 					/>
 				))}
 			</div>
@@ -116,16 +114,16 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 
 		<section class="cta">
 			<div class="container">
-				<h2>¿Listo para vender o alquilar tu propiedad?</h2>
+				<h2>¿Listo para vender o alquilar su propiedad?</h2>
 				<p>
-					Permítenos ayudarte a encontrar al comprador ideal con
+					Permítanos ayudarle a encontrar al comprador ideal con
 					nuestra red exclusiva.
 				</p>
 				<a
 					href={publishWhatsAppLink}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="btn-primary">Contáctanos Hoy</a
+					class="btn-primary">Contáctenos Hoy</a
 				>
 			</div>
 		</section>
@@ -134,14 +132,14 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 	<footer class="footer">
 		<div class="container footer-grid">
 			<div class="footer-brand">
-				<img src={`${base}/main-logo.png`} alt="Logo" height="80" />
+				<img src={`/main-logo.png`} alt="Logo" height="80" />
 				<p>Excelencia en servicios inmobiliarios.</p>
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href={`${base}/catalog?type=sale`}>Comprar</a>
-				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
-				<a href={base}>Nosotros</a>
+				<a href={`/catalog?type=sale`}>Comprar</a>
+				<a href={`/catalog?type=rent`}>Alquilar</a>
+				<a href="/">Nosotros</a>
 			</div>
 			<div class="footer-contact" id="contacto">
 				<h4>Contacto</h4>
@@ -155,19 +153,17 @@ const publishWhatsAppLink = `https://wa.me/50670141868?text=${publishWhatsAppMes
 	</footer>
 </Layout>
 
-<script data-base={base} is:inline>
-	const scriptTag = document.querySelector("script[data-base]");
-	const basePath = scriptTag?.getAttribute("data-base") || "/";
+<script is:inline>
 	const header = document.querySelector(".header");
 	window.addEventListener("scroll", () => {
 		if (window.scrollY > 50) {
 			header.classList.add("scrolled");
 			const logo = document.querySelector(".logo img");
-			logo.src = basePath + "/main-logo.png";
+			logo.src = "/main-logo.png";
 		} else {
 			header.classList.remove("scrolled");
 			const logo = document.querySelector(".logo img");
-			logo.src = basePath + "/main-logo-dark-mode.png";
+			logo.src = "/main-logo-dark-mode.png";
 		}
 	});
 

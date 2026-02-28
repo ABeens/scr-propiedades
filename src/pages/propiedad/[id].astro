@@ -24,7 +24,7 @@ const property = {
 };
 
 // Get recommended properties (excluding current)
-const { results: recResults } = await env.DB.prepare('SELECT * FROM properties WHERE id != ? LIMIT 3').bind(id).all();
+const { results: recResults } = await env.DB.prepare('SELECT * FROM properties WHERE id != ? ORDER BY RANDOM() LIMIT 3').bind(id).all();
 const recommended = recResults.map((r: any) => ({
 	...r,
 	images: JSON.parse(r.images || '[]'),
@@ -35,13 +35,20 @@ const recommended = recResults.map((r: any) => ({
 	contactNumber: r.contact_number,
 }));
 
-const base = import.meta.env.BASE_URL;
+
+const statusLabels: Record<string, string> = {
+	available: 'Disponible',
+	presale: 'Preventa',
+	investment: 'Inversión',
+	sold: 'Vendido',
+	rented: 'Alquilado',
+};
 
 const whatsappMessage = `Hola, me interesa la propiedad: ${property.title} (${property.priceDisplay} / ${property.priceDisplayUSD}). ¿Podrían darme más información?`;
 const whatsappLink = `https://wa.me/${property.contactNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
 const propertyUrl = `${Astro.url.origin}/propiedad/${property.id}`;
-const shareText = encodeURIComponent(`Mirá esta propiedad: ${property.title} - ${property.priceDisplay} (${property.priceDisplayUSD})\n${propertyUrl}`);
+const shareText = encodeURIComponent(`Vea esta propiedad: ${property.title} - ${property.priceDisplay} (${property.priceDisplayUSD})\n${propertyUrl}`);
 const shareLink = `https://wa.me/?text=${shareText}`;
 ---
 
@@ -49,8 +56,8 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 	<header class="header">
 		<div class="container nav-wrapper">
 			<div class="logo">
-				<a href={base}>
-					<img src={`${base}/main-logo.png`} alt="Main Logo" height="80" />
+				<a href="/">
+					<img src={`/main-logo.png`} alt="Main Logo" height="80" />
 				</a>
 			</div>
 			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
@@ -59,10 +66,10 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 				<span></span>
 			</button>
 			<nav class="nav" id="mainNav">
-				<a href={base}>Inicio</a>
-				<a href={`${base}/catalog?type=sale`}>Comprar</a>
-				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
-				<a href={`${base}/#contacto`} class="btn-outline">Contacto</a>
+				<a href="/">Inicio</a>
+				<a href={`/catalog?type=sale`}>Comprar</a>
+				<a href={`/catalog?type=rent`}>Alquilar</a>
+				<a href={`/#contacto`} class="btn-outline">Contacto</a>
 			</nav>
 		</div>
 	</header>
@@ -72,7 +79,7 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 			<img src={property.images[0]} alt={property.title} class="hero-image" />
 			<div class="hero-overlay">
 				<div class="container">
-					<a href={`${base}/catalog`} class="back-link">&larr; Volver al catálogo</a>
+					<a href={`/catalog`} class="back-link">&larr; Volver al catálogo</a>
 					<h1>{property.title}</h1>
 					<p class="hero-location">{property.location}</p>
 				</div>
@@ -85,7 +92,7 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 					<div class="price-row">
 						<span class="detail-price">{property.priceDisplay} | <span class="detail-price-usd">{property.priceDisplayUSD}</span></span>
 						<span class="detail-badge">{property.type === 'sale' ? 'Comprar' : 'Alquilar'}</span>
-						<span class="detail-status">{property.status}</span>
+						<span class="detail-status">{statusLabels[property.status] || property.status}</span>
 					</div>
 
 					<div class="specs-bar">
@@ -117,10 +124,12 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 						)}
 					</div>
 
-					<div class="description">
-						<h2>Descripción</h2>
-						<p>{property.description}</p>
-					</div>
+					{property.description && (
+						<div class="description">
+							<h2>Descripción</h2>
+							<p set:html={property.description.replace(/\n/g, '<br />')} />
+						</div>
+					)}
 
 					<div class="gallery">
 						<h2>Galería</h2>
@@ -133,31 +142,39 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 						</div>
 					</div>
 
-					<div class="media-section">
-						<h2>Video y Redes</h2>
-						<div class="media-links">
-							<a href={property.video} target="_blank" rel="noopener noreferrer" class="media-card">
-								<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-								<span>Ver video del recorrido</span>
-							</a>
-							<a href={property.instagram} target="_blank" rel="noopener noreferrer" class="media-card">
-								<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-								<span>Ver en Instagram</span>
-							</a>
+					{(property.video || property.instagram) && (
+						<div class="media-section">
+							<h2>Video y Redes</h2>
+							<div class="media-links">
+								{property.video && (
+									<a href={property.video} target="_blank" rel="noopener noreferrer" class="media-card">
+										<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+										<span>Ver video del recorrido</span>
+									</a>
+								)}
+								{property.instagram && (
+									<a href={property.instagram} target="_blank" rel="noopener noreferrer" class="media-card">
+										<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+										<span>Ver en Instagram</span>
+									</a>
+								)}
+							</div>
 						</div>
-					</div>
+					)}
 
-					<div class="map-section">
-						<h2>Ubicación Aproximada</h2>
-						<p class="map-note">La ubicación mostrada es aproximada para proteger la privacidad de la propiedad.</p>
-						<div id="map" data-lat={property.lat} data-lng={property.lng}></div>
-					</div>
+					{(property.lat && property.lng) && (
+						<div class="map-section">
+							<h2>Ubicación Aproximada</h2>
+							<p class="map-note">La ubicación mostrada es aproximada para proteger la privacidad de la propiedad.</p>
+							<div id="map" data-lat={property.lat} data-lng={property.lng}></div>
+						</div>
+					)}
 				</div>
 
 				<aside class="detail-sidebar">
 					<div class="contact-card">
-						<h3>¿Te interesa esta propiedad?</h3>
-						<p>Contáctanos directamente por WhatsApp para agendar una visita o recibir más información.</p>
+						<h3>¿Le interesa esta propiedad?</h3>
+						<p>Contáctenos directamente por WhatsApp para agendar una visita o recibir más información.</p>
 						<a href={whatsappLink} target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 							Contactar por WhatsApp
@@ -179,7 +196,7 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 		</div>
 		<div class="property-grid">
 			{recommended.map(prop => (
-					<a href={`${base}/propiedad/${prop.id}`} class="property-card">
+					<a href={`/propiedad/${prop.id}`} class="property-card">
 						<div class="card-image">
 							<img src={prop.images[0]} alt={prop.title} loading="lazy" />
 							<span class="badge">{prop.type === 'sale' ? 'Comprar' : 'Alquilar'}</span>
@@ -195,7 +212,7 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 							<div class="card-specs">
 								<div class="spec-main-row">
 									<span class="spec-label">{prop.propertyType}</span>
-									<span class="status-tag">{prop.status}</span>
+									<span class="status-tag">{statusLabels[prop.status] || prop.status}</span>
 								</div>
 								<div class="spec-icons-row">
 									{prop.beds > 0 && (
@@ -232,14 +249,14 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 	<footer class="footer">
 		<div class="container footer-grid">
 			<div class="footer-brand">
-				<img src={`${base}/main-logo.png`} alt="Logo" height="80" />
+				<img src={`/main-logo.png`} alt="Logo" height="80" />
 				<p>Excelencia en servicios inmobiliarios.</p>
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href={`${base}/catalog?type=sale`}>Comprar</a>
-				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
-				<a href={`${base}/#contacto`}>Contacto</a>
+				<a href={`/catalog?type=sale`}>Comprar</a>
+				<a href={`/catalog?type=rent`}>Alquilar</a>
+				<a href={`/#contacto`}>Contacto</a>
 			</div>
 			<div class="footer-contact">
 				<h4>Contacto</h4>

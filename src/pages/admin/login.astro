@@ -5,20 +5,26 @@ let error = '';
 
 if (Astro.request.method === 'POST') {
 	const formData = await Astro.request.formData();
+	const username = (formData.get('username') as string || '').trim();
 	const password = formData.get('password') as string;
 	const { env } = Astro.locals.runtime;
 
-	if (password === env.ADMIN_PASSWORD) {
-		const token = await hashPassword(password);
+	let users: Record<string, string> = {};
+	try {
+		users = JSON.parse(env.ADMIN_USERS || '{}');
+	} catch {}
+
+	if (users[username] && users[username] === password) {
+		const token = await hashPassword(username + ':' + password);
 		return new Response(null, {
 			status: 302,
 			headers: {
 				'Location': '/admin',
-				'Set-Cookie': `admin-session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`,
+				'Set-Cookie': `admin-session=${encodeURIComponent(username)}:${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`,
 			},
 		});
 	} else {
-		error = 'Contraseña incorrecta';
+		error = 'Usuario o contraseña incorrectos';
 	}
 }
 ---
@@ -43,8 +49,12 @@ if (Astro.request.method === 'POST') {
 
 			<form method="POST">
 				<div class="field">
+					<label for="username">Usuario</label>
+					<input type="text" id="username" name="username" required autofocus />
+				</div>
+				<div class="field">
 					<label for="password">Contraseña</label>
-					<input type="password" id="password" name="password" required autofocus />
+					<input type="password" id="password" name="password" required />
 				</div>
 				<button type="submit" class="btn-login">Iniciar Sesión</button>
 			</form>

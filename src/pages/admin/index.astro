@@ -8,6 +8,14 @@ const properties = results.map((row: any) => ({
 	priceDisplayUSD: row.price_display_usd,
 	propertyType: row.property_type,
 }));
+
+const statusLabels: Record<string, string> = {
+	available: 'Disponible',
+	presale: 'Preventa',
+	investment: 'Inversión',
+	sold: 'Vendido',
+	rented: 'Alquilado',
+};
 ---
 
 <!DOCTYPE html>
@@ -70,7 +78,7 @@ const properties = results.map((row: any) => ({
 								<br /><small class="muted">{prop.priceDisplayUSD}</small>
 							</td>
 							<td>
-								<span class="tag tag-status">{prop.status}</span>
+								<span class="tag tag-status">{statusLabels[prop.status] || prop.status}</span>
 							</td>
 							<td class="actions-cell">
 								<a href={`/admin/property?id=${prop.id}`} class="btn-sm btn-edit">Editar</a>
@@ -87,7 +95,7 @@ const properties = results.map((row: any) => ({
 		<div class="modal-overlay"></div>
 		<div class="modal-content">
 			<h3>Eliminar propiedad</h3>
-			<p>¿Estás seguro de que deseas eliminar "<span id="deleteTitle"></span>"?</p>
+			<p>¿Está seguro de que desea eliminar "<span id="deleteTitle"></span>"?</p>
 			<div class="modal-actions">
 				<button class="btn-sm btn-cancel" id="cancelDelete">Cancelar</button>
 				<button class="btn-sm btn-confirm-delete" id="confirmDelete">Eliminar</button>

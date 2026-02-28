@@ -73,8 +73,9 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 							<select id="status" name="status">
 								<option value="available" selected={property?.status === 'available'}>Disponible</option>
 								<option value="presale" selected={property?.status === 'presale'}>Preventa</option>
-								<option value="Inversión" selected={property?.status === 'Inversión'}>Inversión</option>
+								<option value="investment" selected={property?.status === 'investment'}>Inversión</option>
 								<option value="sold" selected={property?.status === 'sold'}>Vendido</option>
+								<option value="rented" selected={property?.status === 'rented'}>Alquilado</option>
 							</select>
 						</div>
 					</div>
@@ -112,16 +113,22 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 					</div>
 					<div class="field-row">
 						<div class="field">
-							<label for="provincia_id">Provincia ID</label>
-							<input type="text" id="provincia_id" name="provincia_id" value={property?.provincia_id || ''} />
+							<label for="provincia_id">Provincia</label>
+							<select id="provincia_id" name="provincia_id" data-initial={property?.provincia_id || ''}>
+								<option value="">Seleccionar provincia</option>
+							</select>
 						</div>
 						<div class="field">
-							<label for="canton_id">Cantón ID</label>
-							<input type="text" id="canton_id" name="canton_id" value={property?.canton_id || ''} />
+							<label for="canton_id">Cantón</label>
+							<select id="canton_id" name="canton_id" disabled data-initial={property?.canton_id || ''}>
+								<option value="">Seleccionar cantón</option>
+							</select>
 						</div>
 						<div class="field">
-							<label for="distrito_id">Distrito ID</label>
-							<input type="text" id="distrito_id" name="distrito_id" value={property?.distrito_id || ''} />
+							<label for="distrito_id">Distrito</label>
+							<select id="distrito_id" name="distrito_id" disabled data-initial={property?.distrito_id || ''}>
+								<option value="">Seleccionar distrito</option>
+							</select>
 						</div>
 					</div>
 					<div class="field-row">
@@ -172,7 +179,7 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 						<label>Subir imágenes</label>
 						<div class="upload-area" id="uploadArea">
 							<input type="file" id="fileInput" multiple accept="image/*" />
-							<p>Arrastra imágenes aquí o haz clic para seleccionar</p>
+							<p>Arrastre imágenes aquí o haga clic para seleccionar</p>
 						</div>
 						<div id="uploadProgress" class="upload-progress hidden"></div>
 					</div>
@@ -236,6 +243,103 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	const addUrlBtn = document.getElementById('addUrlBtn') as HTMLButtonElement;
 	const manualUrlInput = document.getElementById('manualImageUrl') as HTMLInputElement;
 
+	// --- Cascading Location Selects ---
+	const provinciaSelect = document.getElementById('provincia_id') as HTMLSelectElement;
+	const cantonSelect = document.getElementById('canton_id') as HTMLSelectElement;
+	const distritoSelect = document.getElementById('distrito_id') as HTMLSelectElement;
+	const API_BASE = 'https://ubicaciones.paginasweb.cr';
+
+	async function loadProvincias() {
+		try {
+			const res = await fetch(`${API_BASE}/provincias.json`);
+			const data = await res.json();
+			Object.entries(data).forEach(([id, name]) => {
+				const opt = document.createElement('option');
+				opt.value = id;
+				opt.textContent = name as string;
+				provinciaSelect.appendChild(opt);
+			});
+			const initial = provinciaSelect.getAttribute('data-initial');
+			if (initial) {
+				provinciaSelect.value = initial;
+				await loadCantones(initial);
+			}
+		} catch (e) {
+			console.error('Error loading provincias:', e);
+		}
+	}
+
+	async function loadCantones(provinciaId: string) {
+		cantonSelect.innerHTML = '<option value="">Seleccionar cantón</option>';
+		cantonSelect.disabled = true;
+		distritoSelect.innerHTML = '<option value="">Seleccionar distrito</option>';
+		distritoSelect.disabled = true;
+		if (!provinciaId) return;
+		try {
+			const res = await fetch(`${API_BASE}/provincia/${provinciaId}/cantones.json`);
+			const data = await res.json();
+			Object.entries(data).forEach(([id, name]) => {
+				const opt = document.createElement('option');
+				opt.value = id;
+				opt.textContent = name as string;
+				cantonSelect.appendChild(opt);
+			});
+			cantonSelect.disabled = false;
+			const initial = cantonSelect.getAttribute('data-initial');
+			if (initial) {
+				cantonSelect.value = initial;
+				cantonSelect.removeAttribute('data-initial');
+				await loadDistritos(provinciaId, initial);
+			}
+		} catch (e) {
+			console.error('Error loading cantones:', e);
+		}
+	}
+
+	async function loadDistritos(provinciaId: string, cantonId: string) {
+		distritoSelect.innerHTML = '<option value="">Seleccionar distrito</option>';
+		distritoSelect.disabled = true;
+		if (!cantonId) return;
+		try {
+			const res = await fetch(`${API_BASE}/provincia/${provinciaId}/canton/${cantonId}/distritos.json`);
+			const data = await res.json();
+			Object.entries(data).forEach(([id, name]) => {
+				const opt = document.createElement('option');
+				opt.value = id;
+				opt.textContent = name as string;
+				distritoSelect.appendChild(opt);
+			});
+			distritoSelect.disabled = false;
+			const initial = distritoSelect.getAttribute('data-initial');
+			if (initial) {
+				distritoSelect.value = initial;
+				distritoSelect.removeAttribute('data-initial');
+			}
+		} catch (e) {
+			console.error('Error loading distritos:', e);
+		}
+	}
+
+	provinciaSelect.addEventListener('change', () => loadCantones(provinciaSelect.value));
+	cantonSelect.addEventListener('change', () => loadDistritos(provinciaSelect.value, cantonSelect.value));
+	loadProvincias();
+
+	// Auto-fill price display fields
+	const priceInput = document.getElementById('price') as HTMLInputElement;
+	const priceDisplayInput = document.getElementById('price_display') as HTMLInputElement;
+	const priceUsdInput = document.getElementById('price_usd') as HTMLInputElement;
+	const priceDisplayUsdInput = document.getElementById('price_display_usd') as HTMLInputElement;
+
+	priceInput.addEventListener('input', () => {
+		const val = parseFloat(priceInput.value);
+		priceDisplayInput.value = isNaN(val) ? '' : '₡' + val.toLocaleString('en-US');
+	});
+
+	priceUsdInput.addEventListener('input', () => {
+		const val = parseFloat(priceUsdInput.value);
+		priceDisplayUsdInput.value = isNaN(val) ? '' : '$' + val.toLocaleString('en-US');
+	});
+
 	// Collect current image URLs
 	function getImageUrls(): string[] {
 		return Array.from(imagesList.querySelectorAll('.image-item'))
@@ -288,14 +392,53 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 		}
 	});
 
+	function resizeImage(file: File, maxSize: number, quality: number): Promise<Blob> {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.onload = () => {
+				let { width, height } = img;
+				if (width > maxSize || height > maxSize) {
+					if (width > height) {
+						height = Math.round(height * maxSize / width);
+						width = maxSize;
+					} else {
+						width = Math.round(width * maxSize / height);
+						height = maxSize;
+					}
+				}
+				const canvas = document.createElement('canvas');
+				canvas.width = width;
+				canvas.height = height;
+				const ctx = canvas.getContext('2d')!;
+				ctx.drawImage(img, 0, 0, width, height);
+				canvas.toBlob(
+					blob => blob ? resolve(blob) : reject(new Error('Error al procesar imagen')),
+					'image/jpeg',
+					quality
+				);
+			};
+			img.onerror = () => reject(new Error('Error al cargar imagen'));
+			img.src = URL.createObjectURL(file);
+		});
+	}
+
 	async function uploadFiles(files: FileList) {
 		uploadProgress.classList.remove('hidden');
-		uploadProgress.textContent = `Subiendo ${files.length} imagen(es)...`;
+		uploadProgress.textContent = `Procesando ${files.length} imagen(es)...`;
 
 		const formData = new FormData();
-		for (const file of files) {
-			formData.append('files', file);
+		for (let i = 0; i < files.length; i++) {
+			const file = files[i];
+			uploadProgress.textContent = `Redimensionando ${i + 1}/${files.length}...`;
+			try {
+				const resized = await resizeImage(file, 1600, 0.80);
+				formData.append('files', resized, file.name.replace(/\.[^.]+$/, '.jpg'));
+			} catch {
+				formData.append('files', file);
+			}
 		}
+
+		uploadProgress.textContent = `Subiendo ${files.length} imagen(es)...`;
 
 		try {
 			const res = await fetch('/api/upload', { method: 'POST', body: formData });

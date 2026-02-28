@@ -16,15 +16,14 @@ const properties = results.map((row: any) => ({
 	cantonId: row.canton_id,
 	distritoId: row.distrito_id,
 }));
-const base = import.meta.env.BASE_URL;
 ---
 
 <Layout showWhatsApp={true}>
 	<header class="header">
 		<div class="container nav-wrapper">
 			<div class="logo">
-				<a href={base}>
-					<img src={`${base}/main-logo.png`} alt="Main Logo" height="80" />
+				<a href="/">
+					<img src={`/main-logo.png`} alt="Main Logo" height="80" />
 				</a>
 			</div>
 			<button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
@@ -33,10 +32,10 @@ const base = import.meta.env.BASE_URL;
 				<span></span>
 			</button>
 			<nav class="nav" id="mainNav">
-				<a href={base}>Inicio</a>
-				<a href={`${base}/catalog?type=sale`}>Comprar</a>
-				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
-				<a href={`${base}/#contacto`} class="btn-outline">Contacto</a>
+				<a href="/">Inicio</a>
+				<a href={`/catalog?type=sale`}>Comprar</a>
+				<a href={`/catalog?type=rent`}>Alquilar</a>
+				<a href={`/#contacto`} class="btn-outline">Contacto</a>
 			</nav>
 		</div>
 	</header>
@@ -45,7 +44,7 @@ const base = import.meta.env.BASE_URL;
 		<section class="catalog-header">
 			<div class="container">
 				<h1>Nuestro Catálogo</h1>
-				<p>Explora nuestra selección exclusiva de propiedades para comprar y alquilar.</p>
+				<p>Explore nuestra selección exclusiva de propiedades para comprar y alquilar.</p>
 			</div>
 		</section>
 
@@ -101,7 +100,7 @@ const base = import.meta.env.BASE_URL;
 					<h3>Estatus</h3>
 					<select id="statusFilter">
 						<option value="all">Cualquier estatus</option>
-						<option value="invest">Inversión</option>
+						<option value="investment">Inversión</option>
 						<option value="presale">Preventa</option>
 						<option value="available">Disponible</option>
 					</select>
@@ -203,7 +202,6 @@ const base = import.meta.env.BASE_URL;
 							propertyType={prop.propertyType}
 							status={prop.status}
 							image={prop.images[0]}
-							base={base}
 						/>
 					))}
 				</div>
@@ -214,13 +212,13 @@ const base = import.meta.env.BASE_URL;
 	<footer class="footer">
 		<div class="container footer-grid">
 			<div class="footer-brand">
-				<img src={`${base}/main-logo.png`} alt="Logo" height="80" />
+				<img src={`/main-logo.png`} alt="Logo" height="80" />
 			</div>
 			<div class="footer-links">
 				<h4>Navegación</h4>
-				<a href={`${base}/catalog?type=sale`}>Comprar</a>
-				<a href={`${base}/catalog?type=rent`}>Alquilar</a>
-				<a href={`${base}/#contacto`}>Contacto</a>
+				<a href={`/catalog?type=sale`}>Comprar</a>
+				<a href={`/catalog?type=rent`}>Alquilar</a>
+				<a href={`/#contacto`}>Contacto</a>
 			</div>
 			<div class="footer-contact">
 				<h4>Contacto</h4>
