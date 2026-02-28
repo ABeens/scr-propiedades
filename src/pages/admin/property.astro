@@ -85,22 +85,22 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 					<h3>Precios</h3>
 					<div class="field-row">
 						<div class="field">
-							<label for="price">Precio (₡) *</label>
-							<input type="number" id="price" name="price" required value={property?.price || ''} />
+							<label for="price">Precio (₡)</label>
+							<input type="number" id="price" name="price" value={property?.price || ''} />
 						</div>
 						<div class="field">
-							<label for="price_display">Precio Mostrado (₡) *</label>
-							<input type="text" id="price_display" name="price_display" required value={property?.price_display || ''} placeholder="₡620,000,000" />
+							<label for="price_display">Precio Mostrado (₡)</label>
+							<input type="text" id="price_display" name="price_display" value={property?.price_display || ''} placeholder="₡620,000,000" />
 						</div>
 					</div>
 					<div class="field-row">
 						<div class="field">
-							<label for="price_usd">Precio (USD) *</label>
-							<input type="number" id="price_usd" name="price_usd" required value={property?.price_usd || ''} />
+							<label for="price_usd">Precio (USD)</label>
+							<input type="number" id="price_usd" name="price_usd" value={property?.price_usd || ''} />
 						</div>
 						<div class="field">
-							<label for="price_display_usd">Precio Mostrado (USD) *</label>
-							<input type="text" id="price_display_usd" name="price_display_usd" required value={property?.price_display_usd || ''} placeholder="$1,215,686" />
+							<label for="price_display_usd">Precio Mostrado (USD)</label>
+							<input type="text" id="price_display_usd" name="price_display_usd" value={property?.price_display_usd || ''} placeholder="$1,215,686" />
 						</div>
 					</div>
 				</div>
@@ -179,7 +179,7 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 						<label>Subir imágenes</label>
 						<div class="upload-area" id="uploadArea">
 							<input type="file" id="fileInput" multiple accept="image/*" />
-							<p>Arrastre imágenes aquí o haga clic para seleccionar</p>
+							<p>Arrastre imágenes aquí o haga clic para seleccionar (max 1600px)</p>
 						</div>
 						<div id="uploadProgress" class="upload-progress hidden"></div>
 					</div>
@@ -471,10 +471,10 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 			type: (document.getElementById('type') as HTMLSelectElement).value,
 			property_type: (document.getElementById('property_type') as HTMLSelectElement).value,
 			status: (document.getElementById('status') as HTMLSelectElement).value,
-			price: parseFloat((document.getElementById('price') as HTMLInputElement).value),
-			price_display: (document.getElementById('price_display') as HTMLInputElement).value,
-			price_usd: parseFloat((document.getElementById('price_usd') as HTMLInputElement).value),
-			price_display_usd: (document.getElementById('price_display_usd') as HTMLInputElement).value,
+			price: parseFloat((document.getElementById('price') as HTMLInputElement).value) || 0,
+			price_display: (document.getElementById('price_display') as HTMLInputElement).value || '',
+			price_usd: parseFloat((document.getElementById('price_usd') as HTMLInputElement).value) || 0,
+			price_display_usd: (document.getElementById('price_display_usd') as HTMLInputElement).value || '',
 			location: (document.getElementById('location') as HTMLInputElement).value,
 			provincia_id: (document.getElementById('provincia_id') as HTMLInputElement).value || null,
 			canton_id: (document.getElementById('canton_id') as HTMLInputElement).value || null,
@@ -577,24 +577,24 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	.upload-progress { margin-top: 0.5rem; font-size: 0.85rem; color: #666; }
 	.upload-progress.hidden { display: none; }
 
-	/* Images list */
+	/* Images list - use :global for dynamically added elements */
 	.images-list {
 		display: flex; flex-wrap: wrap;
 		gap: 0.5rem; margin-top: 0.5rem;
 	}
-	.image-item {
+	.images-list :global(.image-item) {
 		position: relative; border-radius: 4px; overflow: hidden;
-		border: 1px solid #eee; width: 80px; height: 60px;
+		border: 1px solid #eee; width: 80px; height: 60px; flex-shrink: 0;
 	}
-	.image-item img { width: 100%; height: 100%; object-fit: cover; }
-	.btn-remove-img {
-		position: absolute; top: 4px; right: 4px;
-		width: 24px; height: 24px; border-radius: 50%;
+	.images-list :global(.image-item img) { width: 100%; height: 100%; object-fit: cover; }
+	.images-list :global(.btn-remove-img) {
+		position: absolute; top: 2px; right: 2px;
+		width: 18px; height: 18px; border-radius: 50%;
 		background: rgba(0,0,0,0.6); color: #fff; border: none;
-		font-size: 1rem; cursor: pointer; display: flex;
+		font-size: 0.7rem; cursor: pointer; display: flex;
 		align-items: center; justify-content: center; line-height: 1;
 	}
-	.btn-remove-img:hover { background: #c00; }
+	.images-list :global(.btn-remove-img:hover) { background: #c00; }
 
 	.url-input-row { display: flex; gap: 0.5rem; }
 	.url-input-row input { flex: 1; }

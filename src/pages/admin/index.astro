@@ -82,6 +82,7 @@ const statusLabels: Record<string, string> = {
 							</td>
 							<td class="actions-cell">
 								<a href={`/admin/property?id=${prop.id}`} class="btn-sm btn-edit">Editar</a>
+								<button class="btn-sm btn-pdf" data-id={prop.id}>PDF</button>
 								<button class="btn-sm btn-delete" data-id={prop.id} data-title={prop.title}>Eliminar</button>
 							</td>
 						</tr>
@@ -138,6 +139,227 @@ const statusLabels: Record<string, string> = {
 		e.preventDefault();
 		document.cookie = 'admin-session=; Path=/; Max-Age=0';
 		window.location.href = '/admin/login';
+	});
+
+	// PDF generation
+	async function generatePDF(propertyId: string) {
+		const btn = document.querySelector(`.btn-pdf[data-id="${propertyId}"]`) as HTMLButtonElement;
+		const originalText = btn.textContent;
+		btn.textContent = 'Generando...';
+		btn.disabled = true;
+
+		try {
+			const res = await fetch(`/api/properties/${propertyId}`);
+			if (!res.ok) throw new Error('Error al obtener datos');
+			const prop = await res.json();
+
+			const { jsPDF } = await import('jspdf');
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = 210;
+			const margin = 15;
+			const contentWidth = pageWidth - margin * 2;
+			let y = margin;
+
+			const statusLabels: Record<string, string> = {
+				available: 'Disponible',
+				presale: 'Preventa',
+				investment: 'Inversión',
+				sold: 'Vendido',
+				rented: 'Alquilado',
+			};
+
+			// Helper: load image as base64 via canvas
+			async function loadImageAsBase64(url: string): Promise<{ data: string; width: number; height: number } | null> {
+				try {
+					const response = await fetch(url);
+					const blob = await response.blob();
+					return new Promise((resolve) => {
+						const img = new Image();
+						img.crossOrigin = 'anonymous';
+						img.onload = () => {
+							const canvas = document.createElement('canvas');
+							canvas.width = img.naturalWidth;
+							canvas.height = img.naturalHeight;
+							const ctx = canvas.getContext('2d')!;
+							ctx.drawImage(img, 0, 0);
+							resolve({ data: canvas.toDataURL('image/jpeg', 0.85), width: img.naturalWidth, height: img.naturalHeight });
+						};
+						img.onerror = () => resolve(null);
+						img.src = URL.createObjectURL(blob);
+					});
+				} catch {
+					return null;
+				}
+			}
+
+			// Helper: add wrapped text, returns new Y position
+			function addWrappedText(text: string, x: number, startY: number, maxWidth: number, lineHeight: number): number {
+				const lines = doc.splitTextToSize(text, maxWidth);
+				for (const line of lines) {
+					if (startY > 275) {
+						doc.addPage();
+						startY = margin;
+					}
+					doc.text(line, x, startY);
+					startY += lineHeight;
+				}
+				return startY;
+			}
+
+			// --- Hero image ---
+			const images: string[] = prop.images || [];
+			if (images.length > 0) {
+				const imgData = await loadImageAsBase64(images[0]);
+				if (imgData) {
+					const imgHeight = (contentWidth * imgData.height) / imgData.width;
+					const clampedHeight = Math.min(imgHeight, 110);
+					doc.addImage(imgData.data, 'JPEG', margin, y, contentWidth, clampedHeight);
+					y += clampedHeight + 8;
+				}
+			}
+
+			// --- Title ---
+			doc.setFontSize(20);
+			doc.setFont('helvetica', 'bold');
+			y = addWrappedText(prop.title, margin, y, contentWidth, 8);
+			y += 3;
+
+			// --- Location ---
+			if (prop.location) {
+				doc.setFontSize(11);
+				doc.setFont('helvetica', 'normal');
+				doc.setTextColor(100, 100, 100);
+				y = addWrappedText(prop.location, margin, y, contentWidth, 5);
+				doc.setTextColor(0, 0, 0);
+				y += 4;
+			}
+
+			// --- Type & Status ---
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'bold');
+			const typeLabel = prop.type === 'sale' ? 'Venta' : 'Alquiler';
+			const statusLabel = statusLabels[prop.status] || prop.status;
+			doc.text(`${typeLabel}  ·  ${statusLabel}`, margin, y);
+			y += 8;
+
+			// --- Divider ---
+			doc.setDrawColor(200, 200, 200);
+			doc.line(margin, y, pageWidth - margin, y);
+			y += 8;
+
+			// --- Prices ---
+			doc.setFontSize(14);
+			doc.setFont('helvetica', 'bold');
+			const prices: string[] = [];
+			if (prop.price_display) prices.push(prop.price_display);
+			if (prop.price_display_usd) prices.push(prop.price_display_usd);
+			if (prices.length > 0) {
+				doc.text(prices.join('  |  '), margin, y);
+				y += 10;
+			}
+
+			// --- Features ---
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'normal');
+			const features: string[] = [];
+			if (prop.beds != null) features.push(`${prop.beds} Habitaciones`);
+			if (prop.baths != null) features.push(`${prop.baths} Baños`);
+			if (prop.area) features.push(`${prop.area} m²`);
+			if (prop.parking != null) features.push(`${prop.parking} Parqueos`);
+			if (prop.property_type) features.push(prop.property_type);
+
+			if (features.length > 0) {
+				doc.setFillColor(245, 245, 245);
+				doc.roundedRect(margin, y - 4, contentWidth, 10, 2, 2, 'F');
+				doc.text(features.join('   ·   '), margin + 4, y + 2);
+				y += 14;
+			}
+
+			// --- Description ---
+			if (prop.description) {
+				doc.setFontSize(12);
+				doc.setFont('helvetica', 'bold');
+				doc.text('Descripción', margin, y);
+				y += 6;
+				doc.setFontSize(10);
+				doc.setFont('helvetica', 'normal');
+				doc.setTextColor(60, 60, 60);
+				y = addWrappedText(prop.description, margin, y, contentWidth, 5);
+				doc.setTextColor(0, 0, 0);
+				y += 6;
+			}
+
+			// --- Additional images (thumbnails) ---
+			if (images.length > 1) {
+				if (y > 230) {
+					doc.addPage();
+					y = margin;
+				}
+				doc.setFontSize(12);
+				doc.setFont('helvetica', 'bold');
+				doc.text('Más imágenes', margin, y);
+				y += 6;
+
+				const thumbWidth = (contentWidth - 10) / 3;
+				const thumbHeight = thumbWidth * 0.65;
+				let col = 0;
+
+				for (let i = 1; i < images.length && i < 7; i++) {
+					if (y + thumbHeight > 280) {
+						doc.addPage();
+						y = margin;
+						col = 0;
+					}
+					const imgData = await loadImageAsBase64(images[i]);
+					if (imgData) {
+						const x = margin + col * (thumbWidth + 5);
+						doc.addImage(imgData.data, 'JPEG', x, y, thumbWidth, thumbHeight);
+						col++;
+						if (col >= 3) {
+							col = 0;
+							y += thumbHeight + 5;
+						}
+					}
+				}
+				if (col > 0) y += thumbHeight + 5;
+				y += 4;
+			}
+
+			// --- Contact ---
+			if (prop.contact_number) {
+				if (y > 270) {
+					doc.addPage();
+					y = margin;
+				}
+				doc.setDrawColor(200, 200, 200);
+				doc.line(margin, y, pageWidth - margin, y);
+				y += 8;
+				doc.setFontSize(11);
+				doc.setFont('helvetica', 'bold');
+				doc.text('Contacto', margin, y);
+				y += 6;
+				doc.setFontSize(10);
+				doc.setFont('helvetica', 'normal');
+				doc.text(prop.contact_number, margin, y);
+			}
+
+			// Save
+			const safeName = prop.title.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_');
+			doc.save(`${safeName}.pdf`);
+		} catch (err) {
+			console.error('Error generating PDF:', err);
+			alert('Error al generar el PDF');
+		} finally {
+			btn.textContent = originalText;
+			btn.disabled = false;
+		}
+	}
+
+	document.querySelectorAll('.btn-pdf').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const id = btn.getAttribute('data-id') || '';
+			generatePDF(id);
+		});
 	});
 </script>
 
@@ -209,6 +431,9 @@ const statusLabels: Record<string, string> = {
 		transition: all 0.2s;
 	}
 	.btn-edit:hover { border-color: #1a1a1a; }
+	.btn-pdf { color: #1565c0; border-color: #bbdefb; }
+	.btn-pdf:hover { background: #e3f2fd; border-color: #1565c0; }
+	.btn-pdf:disabled { opacity: 0.6; cursor: wait; }
 	.btn-delete { color: #c00; border-color: #fcc; }
 	.btn-delete:hover { background: #fee; border-color: #c00; }
 
