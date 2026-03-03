@@ -189,9 +189,11 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 					</div>
 					<div class="field">
 						<label>Imágenes actuales</label>
+						<p class="drag-hint">Arrastre para reordenar. La primera imagen será la portada.</p>
 						<div id="imagesList" class="images-list">
 							{(property?.images || []).map((url: string, i: number) => (
-								<div class="image-item" data-url={url}>
+								<div class="image-item" data-url={url} draggable="true">
+									<span class="drag-handle">⠿</span>
 									<img src={url} alt={`Imagen ${i + 1}`} />
 									<button type="button" class="btn-remove-img" title="Eliminar">&times;</button>
 								</div>
@@ -389,8 +391,10 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 		const div = document.createElement('div');
 		div.className = 'image-item';
 		div.setAttribute('data-url', url);
-		div.innerHTML = `<img src="${url}" alt="Imagen" /><button type="button" class="btn-remove-img" title="Eliminar">&times;</button>`;
+		div.setAttribute('draggable', 'true');
+		div.innerHTML = `<span class="drag-handle">⠿</span><img src="${url}" alt="Imagen" /><button type="button" class="btn-remove-img" title="Eliminar">&times;</button>`;
 		div.querySelector('.btn-remove-img')!.addEventListener('click', () => div.remove());
+		initDragItem(div);
 		imagesList.appendChild(div);
 	}
 
@@ -398,6 +402,55 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	document.querySelectorAll('.btn-remove-img').forEach(btn => {
 		btn.addEventListener('click', () => btn.closest('.image-item')!.remove());
 	});
+
+	// --- Drag and Drop reorder ---
+	let draggedItem: HTMLElement | null = null;
+
+	function initDragItem(item: Element) {
+		item.addEventListener('dragstart', (e: Event) => {
+			const ev = e as DragEvent;
+			draggedItem = item as HTMLElement;
+			draggedItem.classList.add('dragging');
+			ev.dataTransfer!.effectAllowed = 'move';
+		});
+
+		item.addEventListener('dragend', () => {
+			if (draggedItem) {
+				draggedItem.classList.remove('dragging');
+				draggedItem = null;
+			}
+			imagesList.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
+		});
+
+		item.addEventListener('dragover', (e: Event) => {
+			e.preventDefault();
+			(e as DragEvent).dataTransfer!.dropEffect = 'move';
+			if (draggedItem && item !== draggedItem) {
+				item.classList.add('drag-over');
+			}
+		});
+
+		item.addEventListener('dragleave', () => {
+			item.classList.remove('drag-over');
+		});
+
+		item.addEventListener('drop', (e: Event) => {
+			e.preventDefault();
+			item.classList.remove('drag-over');
+			if (!draggedItem || item === draggedItem) return;
+			const items = Array.from(imagesList.querySelectorAll('.image-item'));
+			const dragIdx = items.indexOf(draggedItem);
+			const dropIdx = items.indexOf(item as HTMLElement);
+			if (dragIdx < dropIdx) {
+				imagesList.insertBefore(draggedItem, item.nextSibling);
+			} else {
+				imagesList.insertBefore(draggedItem, item);
+			}
+		});
+	}
+
+	// Init drag on existing items
+	imagesList.querySelectorAll('.image-item').forEach(initDragItem);
 
 	// Add URL manually
 	addUrlBtn.addEventListener('click', () => {
@@ -660,6 +713,27 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 		align-items: center; justify-content: center; line-height: 1;
 	}
 	.images-list :global(.btn-remove-img:hover) { background: #c00; }
+
+	.drag-hint {
+		font-size: 0.78rem; color: #999; margin-bottom: 0.4rem;
+	}
+	.images-list :global(.drag-handle) {
+		position: absolute; bottom: 2px; left: 2px;
+		width: 18px; height: 18px; border-radius: 50%;
+		background: rgba(0,0,0,0.5); color: #fff;
+		font-size: 0.65rem; display: flex;
+		align-items: center; justify-content: center;
+		cursor: grab; z-index: 2; line-height: 1;
+	}
+	.images-list :global(.drag-handle:active) { cursor: grabbing; }
+	.images-list :global(.image-item) { cursor: grab; }
+	.images-list :global(.image-item.dragging) {
+		opacity: 0.4; border-color: #c5a059;
+	}
+	.images-list :global(.image-item.drag-over) {
+		border: 2px solid #c5a059; transform: scale(1.05);
+		transition: transform 0.15s ease;
+	}
 
 	.url-input-row { display: flex; gap: 0.5rem; }
 	.url-input-row input { flex: 1; }

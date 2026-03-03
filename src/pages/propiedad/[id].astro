@@ -53,8 +53,27 @@ try {
 
 const locationParts = [provinciaName, cantonName, distritoName].filter(Boolean);
 
-// Get recommended properties (excluding current)
-const { results: recResults } = await env.DB.prepare('SELECT * FROM properties WHERE id != ? ORDER BY RANDOM() LIMIT 3').bind(id).all();
+// Get recommended properties (excluding current, sold, and rented)
+// Score: same type (+3), same provincia (+2), same property_type (+1), similar price within 50% range (+1)
+const { results: recResults } = await env.DB.prepare(`
+	SELECT *,
+		(CASE WHEN type = ? THEN 3 ELSE 0 END)
+		+ (CASE WHEN provincia_id = ? THEN 2 ELSE 0 END)
+		+ (CASE WHEN property_type = ? THEN 1 ELSE 0 END)
+		+ (CASE WHEN price BETWEEN ? * 0.5 AND ? * 1.5 THEN 1 ELSE 0 END)
+		AS relevance
+	FROM properties
+	WHERE id != ? AND status NOT IN ('sold', 'rented')
+	ORDER BY relevance DESC, RANDOM()
+	LIMIT 3
+`).bind(
+	property.type,
+	property.provinciaId,
+	property.propertyType,
+	row.price,
+	row.price,
+	id
+).all();
 const recommended = recResults.map((r: any) => ({
 	...r,
 	images: JSON.parse(r.images || '[]'),
@@ -601,13 +620,13 @@ const shareLink = `https://wa.me/?text=${shareText}`;
 		font-size: 1.5rem;
 		font-weight: 700;
 		color: var(--primary);
-		font-family: 'Playfair Display', serif;
+		font-family: inherit;
 	}
 
 	.detail-price-usd {
-		color: var(--text-muted);
-		font-weight: 500;
-		font-size: 1.2rem;
+		color: var(--primary);
+		font-weight: 700;
+		font-size: 1.5rem;
 	}
 
 	.detail-badge {
