@@ -433,6 +433,7 @@ const properties = results.map((row: any) => ({
 				const cardBaths = parseInt(card.getAttribute('data-baths') || '0');
 				const cardParking = parseInt(card.getAttribute('data-parking') || '0');
 				const cardArea = parseFloat(card.getAttribute('data-area-val') || '0');
+				const skipRoomFilters = ['Lote', 'Finca', 'Comercial'].includes(cardPropertyType);
 				const cardPrice = selectedCurrency === 'USD'
 					? parseFloat(card.getAttribute('data-price-usd') || '0')
 					: parseFloat(card.getAttribute('data-price') || '0');
@@ -469,18 +470,18 @@ const properties = results.map((row: any) => ({
 					show = false;
 				}
 
-				// Filter by Beds
-				if (cardBeds < minBeds) {
+				// Filter by Beds (skip for Lote)
+				if (!skipRoomFilters && cardBeds < minBeds) {
 					show = false;
 				}
 
-				// Filter by Baths
-				if (cardBaths < minBaths) {
+				// Filter by Baths (skip for Lote)
+				if (!skipRoomFilters && cardBaths < minBaths) {
 					show = false;
 				}
 
-				// Filter by Parking
-				if (cardParking < minParking) {
+				// Filter by Parking (skip for Lote)
+				if (!skipRoomFilters && cardParking < minParking) {
 					show = false;
 				}
 
