@@ -41,7 +41,7 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
         beds = ?, baths = ?, area = ?, parking = ?,
         property_type = ?, status = ?, description = ?,
         images = ?, instagram = ?, video = ?,
-        lat = ?, lng = ?, contact_number = ?,
+        lat = ?, lng = ?, contact_number = ?, notes = ?,
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
@@ -53,6 +53,7 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
       body.instagram || null, body.video || null,
       body.lat || null, body.lng || null,
       body.contact_number || '50670141868',
+      body.notes || null,
       params.id
     ).run();
 

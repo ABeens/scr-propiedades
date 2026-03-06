@@ -304,7 +304,7 @@ const statusLabels: Record<string, string> = {
 				const thumbHeight = thumbWidth * 0.65;
 				let col = 0;
 
-				for (let i = 1; i < images.length && i < 7; i++) {
+				for (let i = 1; i < images.length; i++) {
 					if (y + thumbHeight > 280) {
 						doc.addPage();
 						y = margin;

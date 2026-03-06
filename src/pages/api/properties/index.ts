@@ -31,21 +31,28 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const id = body.id || crypto.randomUUID();
 
+    const lastCode: any = await db.prepare(
+      `SELECT MAX(CAST(SUBSTR(code, 5) AS INTEGER)) as max_num FROM properties WHERE code LIKE 'SCR-%'`
+    ).first();
+    const nextNum = (lastCode?.max_num || 0) + 1;
+    const code = `SCR-${String(nextNum).padStart(3, '0')}`;
+
     await db.prepare(`
-      INSERT INTO properties (id, title, price, price_display, price_usd, price_display_usd, type, location, provincia_id, canton_id, distrito_id, beds, baths, area, parking, property_type, status, description, images, instagram, video, lat, lng, contact_number)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO properties (id, code, title, price, price_display, price_usd, price_display_usd, type, location, provincia_id, canton_id, distrito_id, beds, baths, area, parking, property_type, status, description, images, instagram, video, lat, lng, contact_number, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      id, body.title, body.price, body.price_display, body.price_usd, body.price_display_usd,
+      id, code, body.title, body.price, body.price_display, body.price_usd, body.price_display_usd,
       body.type, body.location, body.provincia_id || null, body.canton_id || null, body.distrito_id || null,
       body.beds || 0, body.baths || 0, body.area, body.parking || 0,
       body.property_type, body.status || 'available', body.description || null,
       JSON.stringify(body.images || []),
       body.instagram || null, body.video || null,
       body.lat || null, body.lng || null,
-      body.contact_number || '50670141868'
+      body.contact_number || '50670141868',
+      body.notes || null
     ).run();
 
-    return new Response(JSON.stringify({ id }), {
+    return new Response(JSON.stringify({ id, code }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });

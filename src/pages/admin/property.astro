@@ -45,6 +45,13 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 				<div class="form-section">
 					<h3>Información General</h3>
 
+					{property?.code && (
+						<div class="field">
+							<label>Código</label>
+							<input type="text" value={property.code} disabled class="field-code" />
+						</div>
+					)}
+
 					<div class="field">
 						<label for="title">Título *</label>
 						<input type="text" id="title" name="title" required value={property?.title || ''} />
@@ -174,6 +181,14 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 					<div class="field">
 						<label for="description">Descripción</label>
 						<textarea id="description" name="description" rows="5">{property?.description || ''}</textarea>
+					</div>
+				</div>
+
+				<div class="form-section">
+					<h3>Notas internas</h3>
+					<div class="field">
+						<label for="notes">Notas</label>
+						<textarea id="notes" name="notes" rows="4" placeholder="Notas privadas sobre esta propiedad...">{property?.notes || ''}</textarea>
 					</div>
 				</div>
 
@@ -604,6 +619,7 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 			area: (document.getElementById('area') as HTMLInputElement).value,
 			parking: parseInt((document.getElementById('parking') as HTMLInputElement).value) || 0,
 			description: (document.getElementById('description') as HTMLTextAreaElement).value || null,
+			notes: (document.getElementById('notes') as HTMLTextAreaElement).value || null,
 			images: getImageUrls(),
 			contact_number: (document.getElementById('contact_number') as HTMLInputElement).value || '50670141868',
 			instagram: (document.getElementById('instagram') as HTMLInputElement).value || null,
@@ -679,6 +695,7 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 		outline: none; border-color: #1a1a1a;
 	}
 	.field textarea { resize: vertical; }
+	.field-code { background: #f5f5f5; color: #888; font-weight: 600; cursor: default; }
 
 	.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
 
