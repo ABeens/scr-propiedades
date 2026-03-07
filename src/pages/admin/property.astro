@@ -186,9 +186,16 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 
 				<div class="form-section">
 					<h3>Notas internas</h3>
-					<div class="field">
-						<label for="notes">Notas</label>
-						<textarea id="notes" name="notes" rows="4" placeholder="Notas privadas sobre esta propiedad...">{property?.notes || ''}</textarea>
+					<textarea id="notes" name="notes" class="notes-hidden">{property?.notes || ''}</textarea>
+					<div id="notesList" class="notes-list"></div>
+					<div class="notes-input-row">
+						<input type="text" id="noteInput" class="notes-new-input" placeholder="Escribe una nota..." />
+						<button type="button" id="addNoteRow" class="notes-save-btn">Agregar</button>
+					</div>
+					<div class="notes-actions">
+						<button type="button" id="saveNotesBtn" class="btn-primary notes-submit-btn">
+							{isEdit ? 'Guardar Cambios' : 'Crear Propiedad'}
+						</button>
 					</div>
 				</div>
 
@@ -650,6 +657,50 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 			submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Crear Propiedad';
 		}
 	});
+
+	// --- Notes ---
+	const notesTextarea = document.getElementById('notes') as HTMLTextAreaElement;
+	const notesList = document.getElementById('notesList') as HTMLDivElement;
+	const noteInput = document.getElementById('noteInput') as HTMLInputElement;
+
+	function serializeNotes() {
+		const items = notesList.querySelectorAll<HTMLElement>('.note-item');
+		notesTextarea.value = Array.from(items).map(el => el.dataset.text || '').filter(Boolean).join('\n');
+	}
+
+	function addNote(text: string) {
+		const t = text.trim();
+		if (!t) return;
+		const item = document.createElement('div');
+		item.className = 'note-item';
+		item.dataset.text = t;
+		item.innerHTML = `<span class="note-text">${t.replace(/</g, '&lt;')}</span><button type="button" class="note-remove" title="Eliminar">&times;</button>`;
+		item.querySelector('.note-remove')!.addEventListener('click', () => { item.remove(); serializeNotes(); });
+		notesList.appendChild(item);
+		serializeNotes();
+	}
+
+	function commitNote() {
+		addNote(noteInput.value);
+		noteInput.value = '';
+		noteInput.focus();
+	}
+
+	document.getElementById('addNoteRow')!.addEventListener('click', commitNote);
+	noteInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); commitNote(); } });
+
+	document.getElementById('saveNotesBtn')!.addEventListener('click', () => {
+		form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+	});
+
+	// Load existing
+	const existingNotes = notesTextarea.value.trim();
+	if (existingNotes) {
+		existingNotes.split('\n').forEach(line => {
+			const sep = line.indexOf('::');
+			addNote(sep >= 0 ? `${line.slice(0, sep)}: ${line.slice(sep + 2)}` : line);
+		});
+	}
 </script>
 
 <style>
@@ -696,6 +747,37 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	}
 	.field textarea { resize: vertical; }
 	.field-code { background: #f5f5f5; color: #888; font-weight: 600; cursor: default; }
+
+	.notes-hidden { display: none; }
+	.notes-list { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; min-height: 0; }
+	:global(.note-item) {
+		display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+		background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+		padding: 0.55rem 0.6rem 0.55rem 0.9rem;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+	:global(.note-item:hover) { border-color: #bbb; box-shadow: 0 2px 6px rgba(0,0,0,0.07); }
+	:global(.note-text) { font-size: 0.88rem; color: #333; line-height: 1.4; flex: 1; }
+	:global(.note-remove) {
+		background: none; border: none; cursor: pointer; color: #aaa;
+		font-size: 1rem; line-height: 1; padding: 0; flex-shrink: 0; transition: color 0.15s;
+	}
+	:global(.note-remove:hover) { color: #c00; }
+	.notes-input-row { display: flex; gap: 0.5rem; }
+	.notes-new-input {
+		flex: 1; padding: 0.55rem 0.75rem; border: 1px solid #ddd; border-radius: 6px;
+		font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.15s;
+	}
+	.notes-new-input:focus { border-color: #1a1a1a; }
+	.notes-save-btn {
+		padding: 0.55rem 1rem; background: #1a1a1a; color: #fff; border: none;
+		border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
+		white-space: nowrap; transition: background 0.15s;
+	}
+	.notes-save-btn:hover { background: #333; }
+	.notes-actions { margin-top: 0.75rem; }
+	.notes-submit-btn { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
 
 	.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
 
