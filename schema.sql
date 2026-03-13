@@ -25,6 +25,9 @@ CREATE TABLE properties (
   lat REAL,
   lng REAL,
   contact_number TEXT NOT NULL DEFAULT '50670141868',
+  featured INTEGER NOT NULL DEFAULT 0,
+  code TEXT UNIQUE,
+  notes TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

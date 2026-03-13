@@ -86,6 +86,12 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 							</select>
 						</div>
 					</div>
+
+					<label class="featured-toggle">
+						<input type="checkbox" id="featured" checked={!!property?.featured} />
+						<span class="toggle-track"><span class="toggle-thumb"></span></span>
+						Destacar en página principal
+					</label>
 				</div>
 
 				<div class="form-section">
@@ -152,26 +158,22 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 
 				<div class="form-section">
 					<h3>Características</h3>
-					<p id="charNote" class="char-note">Habitaciones, Baños y Parqueos son obligatorios para <strong>Casa</strong> y <strong>Apartamento</strong>. No aplican para Lote, Finca y Comercial.</p>
 					<div class="field-row">
-						<div class="field" id="bedsField">
-							<label for="beds" id="bedsLabel">Habitaciones</label>
-							<input type="number" id="beds" name="beds" min="0" value={property?.beds ?? 0} />
-							<span id="bedsWarn" class="field-warn hidden">Requerido para este tipo de propiedad</span>
+						<div class="field">
+							<label for="beds">Habitaciones</label>
+							<input type="number" id="beds" name="beds" min="0" value={property?.beds ?? ''} />
 						</div>
-						<div class="field" id="bathsField">
-							<label for="baths" id="bathsLabel">Baños</label>
-							<input type="number" id="baths" name="baths" min="0" step="0.5" value={property?.baths ?? 0} />
-							<span id="bathsWarn" class="field-warn hidden">Requerido para este tipo de propiedad</span>
+						<div class="field">
+							<label for="baths">Baños</label>
+							<input type="number" id="baths" name="baths" min="0" step="0.5" value={property?.baths ?? ''} />
 						</div>
 						<div class="field">
 							<label for="area">Área *</label>
 							<input type="text" id="area" name="area" required value={property?.area || ''} placeholder="350 m²" />
 						</div>
-						<div class="field" id="parkingField">
-							<label for="parking" id="parkingLabel">Parqueos</label>
-							<input type="number" id="parking" name="parking" min="0" value={property?.parking ?? 0} />
-							<span id="parkingWarn" class="field-warn hidden">Requerido para este tipo de propiedad</span>
+						<div class="field">
+							<label for="parking">Parqueos</label>
+							<input type="number" id="parking" name="parking" min="0" value={property?.parking ?? ''} />
 						</div>
 					</div>
 				</div>
@@ -352,38 +354,7 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	cantonSelect.addEventListener('change', () => loadDistritos(provinciaSelect.value, cantonSelect.value));
 	loadProvincias();
 
-	// --- Property type: toggle required fields for beds/baths/parking ---
 	const propertyTypeSelect = document.getElementById('property_type') as HTMLSelectElement;
-	const typesWithoutRooms = ['Lote', 'Finca', 'Comercial'];
-
-	function updateCharFields() {
-		const pType = propertyTypeSelect.value;
-		const required = !typesWithoutRooms.includes(pType);
-		const bedsLabel = document.getElementById('bedsLabel')!;
-		const bathsLabel = document.getElementById('bathsLabel')!;
-		const parkingLabel = document.getElementById('parkingLabel')!;
-		const bedsField = document.getElementById('bedsField')!;
-		const bathsField = document.getElementById('bathsField')!;
-		const parkingField = document.getElementById('parkingField')!;
-
-		bedsLabel.textContent = required ? 'Habitaciones *' : 'Habitaciones';
-		bathsLabel.textContent = required ? 'Baños *' : 'Baños';
-		parkingLabel.textContent = required ? 'Parqueos *' : 'Parqueos';
-
-		[bedsField, bathsField, parkingField].forEach(f => {
-			if (required) {
-				f.classList.remove('field-disabled');
-			} else {
-				f.classList.add('field-disabled');
-			}
-		});
-
-		// Clear warnings when switching type
-		document.querySelectorAll('.field-warn').forEach(w => w.classList.add('hidden'));
-	}
-
-	propertyTypeSelect.addEventListener('change', updateCharFields);
-	updateCharFields();
 
 	// Auto-fill price display fields
 	const priceInput = document.getElementById('price') as HTMLInputElement;
@@ -573,33 +544,6 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
 
-		// Validate beds/baths/parking for Casa and Apartamento
-		const pType = propertyTypeSelect.value;
-		const requiresRooms = !typesWithoutRooms.includes(pType);
-
-		if (requiresRooms) {
-			const bedsVal = parseInt((document.getElementById('beds') as HTMLInputElement).value) || 0;
-			const bathsVal = parseFloat((document.getElementById('baths') as HTMLInputElement).value) || 0;
-			const parkingVal = parseInt((document.getElementById('parking') as HTMLInputElement).value) || 0;
-			const bedsWarn = document.getElementById('bedsWarn')!;
-			const bathsWarn = document.getElementById('bathsWarn')!;
-			const parkingWarn = document.getElementById('parkingWarn')!;
-
-			let hasError = false;
-			bedsWarn.classList.add('hidden');
-			bathsWarn.classList.add('hidden');
-			parkingWarn.classList.add('hidden');
-
-			if (bedsVal <= 0) { bedsWarn.classList.remove('hidden'); hasError = true; }
-			if (bathsVal <= 0) { bathsWarn.classList.remove('hidden'); hasError = true; }
-			if (parkingVal <= 0) { parkingWarn.classList.remove('hidden'); hasError = true; }
-
-			if (hasError) {
-				alert(`Las propiedades tipo "${pType}" requieren al menos 1 habitación, 1 baño y 1 parqueo.`);
-				return;
-			}
-		}
-
 		submitBtn.disabled = true;
 		submitBtn.textContent = 'Guardando...';
 
@@ -621,11 +565,12 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 			distrito_id: (document.getElementById('distrito_id') as HTMLInputElement).value || null,
 			lat: parseFloat((document.getElementById('lat') as HTMLInputElement).value) || null,
 			lng: parseFloat((document.getElementById('lng') as HTMLInputElement).value) || null,
-			beds: parseInt((document.getElementById('beds') as HTMLInputElement).value) || 0,
-			baths: parseFloat((document.getElementById('baths') as HTMLInputElement).value) || 0,
+			beds: (document.getElementById('beds') as HTMLInputElement).value ? parseInt((document.getElementById('beds') as HTMLInputElement).value) : null,
+			baths: (document.getElementById('baths') as HTMLInputElement).value ? parseFloat((document.getElementById('baths') as HTMLInputElement).value) : null,
 			area: (document.getElementById('area') as HTMLInputElement).value,
-			parking: parseInt((document.getElementById('parking') as HTMLInputElement).value) || 0,
+			parking: (document.getElementById('parking') as HTMLInputElement).value ? parseInt((document.getElementById('parking') as HTMLInputElement).value) : null,
 			description: (document.getElementById('description') as HTMLTextAreaElement).value || null,
+			featured: (document.getElementById('featured') as HTMLInputElement).checked,
 			notes: (document.getElementById('notes') as HTMLTextAreaElement).value || null,
 			images: getImageUrls(),
 			contact_number: (document.getElementById('contact_number') as HTMLInputElement).value || '50670141868',
@@ -674,10 +619,60 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 		const item = document.createElement('div');
 		item.className = 'note-item';
 		item.dataset.text = t;
-		item.innerHTML = `<span class="note-text">${t.replace(/</g, '&lt;')}</span><button type="button" class="note-remove" title="Eliminar">&times;</button>`;
+		item.innerHTML = `<span class="note-text">${t.replace(/</g, '&lt;')}</span><button type="button" class="note-edit" title="Editar">&#9998;</button><button type="button" class="note-remove" title="Eliminar">&times;</button>`;
 		item.querySelector('.note-remove')!.addEventListener('click', () => { item.remove(); serializeNotes(); });
+		item.querySelector('.note-edit')!.addEventListener('click', () => startEditNote(item));
 		notesList.appendChild(item);
 		serializeNotes();
+	}
+
+	function startEditNote(item: HTMLElement) {
+		const currentText = item.dataset.text || '';
+		const input = document.createElement('input');
+		input.type = 'text';
+		input.className = 'note-edit-input';
+		input.value = currentText;
+
+		const saveBtn = document.createElement('button');
+		saveBtn.type = 'button';
+		saveBtn.className = 'note-edit-save';
+		saveBtn.textContent = '✓';
+		saveBtn.title = 'Guardar';
+
+		const cancelBtn = document.createElement('button');
+		cancelBtn.type = 'button';
+		cancelBtn.className = 'note-edit-cancel';
+		cancelBtn.textContent = '✕';
+		cancelBtn.title = 'Cancelar';
+
+		item.innerHTML = '';
+		item.classList.add('note-editing');
+		item.appendChild(input);
+		item.appendChild(saveBtn);
+		item.appendChild(cancelBtn);
+		input.focus();
+		input.select();
+
+		function finishEdit(save: boolean) {
+			const newText = input.value.trim();
+			item.classList.remove('note-editing');
+			if (save && newText) {
+				item.dataset.text = newText;
+				item.innerHTML = `<span class="note-text">${newText.replace(/</g, '&lt;')}</span><button type="button" class="note-edit" title="Editar">&#9998;</button><button type="button" class="note-remove" title="Eliminar">&times;</button>`;
+			} else {
+				item.innerHTML = `<span class="note-text">${currentText.replace(/</g, '&lt;')}</span><button type="button" class="note-edit" title="Editar">&#9998;</button><button type="button" class="note-remove" title="Eliminar">&times;</button>`;
+			}
+			item.querySelector('.note-remove')!.addEventListener('click', () => { item.remove(); serializeNotes(); });
+			item.querySelector('.note-edit')!.addEventListener('click', () => startEditNote(item));
+			serializeNotes();
+		}
+
+		saveBtn.addEventListener('click', () => finishEdit(true));
+		cancelBtn.addEventListener('click', () => finishEdit(false));
+		input.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') { e.preventDefault(); finishEdit(true); }
+			if (e.key === 'Escape') { finishEdit(false); }
+		});
 	}
 
 	function commitNote() {
@@ -748,6 +743,24 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	.field textarea { resize: vertical; }
 	.field-code { background: #f5f5f5; color: #888; font-weight: 600; cursor: default; }
 
+	.featured-toggle {
+		display: inline-flex; align-items: center; gap: 0.6rem;
+		cursor: pointer; font-size: 0.88rem; color: #444; font-weight: 500;
+		margin-top: 0.25rem; user-select: none;
+	}
+	.featured-toggle input { display: none; }
+	.toggle-track {
+		width: 40px; height: 22px; background: #ddd; border-radius: 999px;
+		position: relative; transition: background 0.2s; flex-shrink: 0;
+	}
+	.toggle-thumb {
+		width: 16px; height: 16px; background: #fff; border-radius: 50%;
+		position: absolute; top: 3px; left: 3px;
+		transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+	}
+	.featured-toggle input:checked + .toggle-track { background: #1a1a1a; }
+	.featured-toggle input:checked + .toggle-track .toggle-thumb { left: 21px; }
+
 	.notes-hidden { display: none; }
 	.notes-list { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; min-height: 0; }
 	:global(.note-item) {
@@ -759,11 +772,33 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	}
 	:global(.note-item:hover) { border-color: #bbb; box-shadow: 0 2px 6px rgba(0,0,0,0.07); }
 	:global(.note-text) { font-size: 0.88rem; color: #333; line-height: 1.4; flex: 1; }
+	:global(.note-edit) {
+		background: none; border: none; cursor: pointer; color: #aaa;
+		font-size: 0.9rem; line-height: 1; padding: 0; flex-shrink: 0; transition: color 0.15s;
+	}
+	:global(.note-edit:hover) { color: #c5a059; }
 	:global(.note-remove) {
 		background: none; border: none; cursor: pointer; color: #aaa;
 		font-size: 1rem; line-height: 1; padding: 0; flex-shrink: 0; transition: color 0.15s;
 	}
 	:global(.note-remove:hover) { color: #c00; }
+	:global(.note-editing) {
+		background: #fffdf5; border-color: #c5a059;
+	}
+	:global(.note-edit-input) {
+		flex: 1; padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 4px;
+		font-family: inherit; font-size: 0.88rem; outline: none;
+	}
+	:global(.note-edit-input:focus) { border-color: #c5a059; }
+	:global(.note-edit-save),
+	:global(.note-edit-cancel) {
+		background: none; border: none; cursor: pointer; font-size: 1rem;
+		line-height: 1; padding: 0 0.15rem; flex-shrink: 0; transition: color 0.15s;
+	}
+	:global(.note-edit-save) { color: #2e7d32; }
+	:global(.note-edit-save:hover) { color: #1b5e20; }
+	:global(.note-edit-cancel) { color: #aaa; }
+	:global(.note-edit-cancel:hover) { color: #c00; }
 	.notes-input-row { display: flex; gap: 0.5rem; }
 	.notes-new-input {
 		flex: 1; padding: 0.55rem 0.75rem; border: 1px solid #ddd; border-radius: 6px;
@@ -859,23 +894,6 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 
 	.hidden { display: none; }
 
-	.char-note {
-		font-size: 0.82rem; color: #888; margin-bottom: 1rem;
-		padding: 0.6rem 0.8rem; background: #fffdf0; border-left: 3px solid #c5a059;
-		border-radius: 0 4px 4px 0;
-	}
-	.char-note strong { color: #333; }
-
-	.field-warn {
-		display: block; font-size: 0.78rem; color: #d32f2f; margin-top: 0.3rem; font-weight: 500;
-	}
-	.field-warn.hidden { display: none; }
-
-	.field-disabled {
-		opacity: 0.5;
-	}
-	.field-disabled label { color: #aaa !important; }
-	.field-disabled input { background: #f5f5f5; }
 
 	@media (max-width: 768px) {
 		.field-row { grid-template-columns: 1fr; }

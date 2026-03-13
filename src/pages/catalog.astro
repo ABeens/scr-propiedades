@@ -205,6 +205,7 @@ const properties = results.map((row: any) => ({
 						/>
 					))}
 				</div>
+				<div id="pagination" class="pagination"></div>
 			</div>
 		</section>
 	</main>
@@ -248,6 +249,9 @@ const properties = results.map((row: any) => ({
 		const grid = document.getElementById('propertiesGrid');
 		const cards = document.querySelectorAll('.property-card');
 		const noResults = document.getElementById('noResults');
+		const paginationEl = document.getElementById('pagination');
+		const ITEMS_PER_PAGE = 10;
+		let currentPage = 1;
 
 		// Mobile Filter Logic
 		const openFiltersBtn = document.getElementById('openFilters');
@@ -361,16 +365,16 @@ const properties = results.map((row: any) => ({
 
 		provinciaSelect.addEventListener('change', async () => {
 			await loadCantones(provinciaSelect.value);
-			filterProperties();
+			filterFromFirst();
 		});
 
 		cantonSelect.addEventListener('change', async () => {
 			await loadDistritos(provinciaSelect.value, cantonSelect.value);
-			filterProperties();
+			filterFromFirst();
 		});
 
 		distritoSelect.addEventListener('change', () => {
-			filterProperties();
+			filterFromFirst();
 		});
 
 		// Load provincias on init
@@ -518,30 +522,106 @@ const properties = results.map((row: any) => ({
 
 			if (visibleItems.length === 0) {
 				noResults.classList.remove('hidden');
+				paginationEl.innerHTML = '';
 			} else {
 				noResults.classList.add('hidden');
 			}
+
+			// Pagination
+			const totalPages = Math.ceil(visibleItems.length / ITEMS_PER_PAGE);
+			if (currentPage > totalPages) currentPage = totalPages || 1;
+
+			visibleItems.forEach((card, i) => {
+				const el = card as HTMLElement;
+				if (i >= (currentPage - 1) * ITEMS_PER_PAGE && i < currentPage * ITEMS_PER_PAGE) {
+					el.style.display = 'block';
+				} else {
+					el.style.display = 'none';
+				}
+			});
+
+			renderPagination(totalPages, visibleItems.length);
+		}
+
+		function renderPagination(totalPages: number, totalItems: number) {
+			if (totalPages <= 1) {
+				paginationEl.innerHTML = '';
+				return;
+			}
+
+			let html = '';
+
+			// Previous button
+			html += `<button class="page-btn page-prev ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&lsaquo;</button>`;
+
+			// Page numbers
+			const maxVisible = 5;
+			let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+			let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+			if (endPage - startPage < maxVisible - 1) {
+				startPage = Math.max(1, endPage - maxVisible + 1);
+			}
+
+			if (startPage > 1) {
+				html += `<button class="page-btn" data-page="1">1</button>`;
+				if (startPage > 2) html += `<span class="page-dots">...</span>`;
+			}
+
+			for (let i = startPage; i <= endPage; i++) {
+				html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+			}
+
+			if (endPage < totalPages) {
+				if (endPage < totalPages - 1) html += `<span class="page-dots">...</span>`;
+				html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+			}
+
+			// Next button
+			html += `<button class="page-btn page-next ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>&rsaquo;</button>`;
+
+			// Info text
+			const from = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+			const to = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+			html += `<div class="page-info">${from}-${to} de ${totalItems} propiedades</div>`;
+
+			paginationEl.innerHTML = html;
+
+			// Add click listeners
+			paginationEl.querySelectorAll('.page-btn:not(.disabled)').forEach(btn => {
+				btn.addEventListener('click', () => {
+					currentPage = parseInt(btn.getAttribute('data-page'));
+					filterProperties();
+					// Scroll to top of grid
+					grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				});
+			});
+		}
+
+		// Reset page to 1 when any filter changes
+		function filterFromFirst() {
+			currentPage = 1;
+			filterProperties();
 		}
 
 		// Event Listeners
-		typeRadios.forEach(radio => radio.addEventListener('change', filterProperties));
-		document.getElementById('propertyTypeFilter').addEventListener('change', filterProperties);
-		document.getElementById('statusFilter').addEventListener('change', filterProperties);
-		document.getElementById('sortFilter').addEventListener('change', filterProperties);
-		bedsInput.addEventListener('input', filterProperties);
-		bathsInput.addEventListener('input', filterProperties);
-		parkingInput.addEventListener('input', filterProperties);
-		document.getElementById('minArea')?.addEventListener('input', filterProperties);
-		document.getElementById('maxArea')?.addEventListener('input', filterProperties);
-		document.getElementById('minPrice')?.addEventListener('input', filterProperties);
-		document.getElementById('maxPrice').addEventListener('input', filterProperties);
+		typeRadios.forEach(radio => radio.addEventListener('change', filterFromFirst));
+		document.getElementById('propertyTypeFilter').addEventListener('change', filterFromFirst);
+		document.getElementById('statusFilter').addEventListener('change', filterFromFirst);
+		document.getElementById('sortFilter').addEventListener('change', filterFromFirst);
+		bedsInput.addEventListener('input', filterFromFirst);
+		bathsInput.addEventListener('input', filterFromFirst);
+		parkingInput.addEventListener('input', filterFromFirst);
+		document.getElementById('minArea')?.addEventListener('input', filterFromFirst);
+		document.getElementById('maxArea')?.addEventListener('input', filterFromFirst);
+		document.getElementById('minPrice')?.addEventListener('input', filterFromFirst);
+		document.getElementById('maxPrice').addEventListener('input', filterFromFirst);
 		document.querySelectorAll('input[name="currencyType"]').forEach(radio => {
 			radio.addEventListener('change', () => {
 				const minInput = document.getElementById('minPrice');
 				const maxInput = document.getElementById('maxPrice');
 				if (minInput instanceof HTMLInputElement) minInput.value = '';
 				if (maxInput instanceof HTMLInputElement) maxInput.value = '';
-				filterProperties();
+				filterFromFirst();
 			});
 		});
 
@@ -1039,5 +1119,72 @@ const properties = results.map((row: any) => ({
 		margin-top: 0.5rem;
 		color: var(--text-muted);
 		font-size: 0.75rem;
+	}
+
+	/* Pagination */
+	.pagination {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 2.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid #eee;
+	}
+
+	.pagination :global(.page-btn) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 40px;
+		height: 40px;
+		padding: 0 0.5rem;
+		border: 1px solid #ddd;
+		border-radius: 6px;
+		background: #fff;
+		color: var(--primary);
+		font-family: inherit;
+		font-size: 0.9rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.pagination :global(.page-btn:hover:not(.disabled):not(.active)) {
+		border-color: var(--accent);
+		color: var(--accent);
+		background: #fffdf5;
+	}
+
+	.pagination :global(.page-btn.active) {
+		background: var(--primary);
+		color: #fff;
+		border-color: var(--primary);
+	}
+
+	.pagination :global(.page-btn.disabled) {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.pagination :global(.page-prev),
+	.pagination :global(.page-next) {
+		font-size: 1.3rem;
+		font-weight: 700;
+	}
+
+	.pagination :global(.page-dots) {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		padding: 0 0.2rem;
+	}
+
+	.pagination :global(.page-info) {
+		width: 100%;
+		text-align: center;
+		font-size: 0.82rem;
+		color: var(--text-muted);
+		margin-top: 0.5rem;
 	}
 </style>

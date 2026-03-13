@@ -74,8 +74,9 @@ const statusLabels: Record<string, string> = {
 								<br /><small class="muted">{prop.propertyType}</small>
 							</td>
 							<td>
-								<strong>{prop.priceDisplay}</strong>
-								<br /><small class="muted">{prop.priceDisplayUSD}</small>
+								{prop.priceDisplay && <span class="price-line">{prop.priceDisplay}</span>}
+								{prop.priceDisplay && prop.priceDisplayUSD && <br />}
+								{prop.priceDisplayUSD && <span class="price-line">{prop.priceDisplayUSD}</span>}
 							</td>
 							<td>
 								<span class="tag tag-status">{statusLabels[prop.status] || prop.status}</span>
@@ -414,6 +415,7 @@ const statusLabels: Record<string, string> = {
 	}
 
 	.muted { color: #999; font-size: 0.8rem; }
+	.price-line { font-size: 0.9rem; font-weight: 600; }
 
 	.tag {
 		display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px;

@@ -41,18 +41,19 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
         beds = ?, baths = ?, area = ?, parking = ?,
         property_type = ?, status = ?, description = ?,
         images = ?, instagram = ?, video = ?,
-        lat = ?, lng = ?, contact_number = ?, notes = ?,
+        lat = ?, lng = ?, contact_number = ?, featured = ?, notes = ?,
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
       body.title, body.price, body.price_display, body.price_usd, body.price_display_usd,
       body.type, body.location, body.provincia_id || null, body.canton_id || null, body.distrito_id || null,
-      body.beds || 0, body.baths || 0, body.area, body.parking || 0,
+      body.beds ?? 0, body.baths ?? 0, body.area, body.parking ?? 0,
       body.property_type, body.status || 'available', body.description || null,
       JSON.stringify(body.images || []),
       body.instagram || null, body.video || null,
       body.lat || null, body.lng || null,
       body.contact_number || '50670141868',
+      body.featured ? 1 : 0,
       body.notes || null,
       params.id
     ).run();
