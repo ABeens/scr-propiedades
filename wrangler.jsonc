@@ -1,15 +1,11 @@
 {
-	"main": "dist/_worker.js/index.js",
 	"name": "scr-propiedades",
-	"compatibility_date": "2026-02-01",
+	"pages_build_output_dir": "./dist",
+	"compatibility_date": "2024-12-01",
 	"compatibility_flags": [
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./dist"
-	},
 	"observability": {
 		"enabled": true
 	},
@@ -17,7 +13,7 @@
 		{
 			"binding": "DB",
 			"database_name": "scr-propiedades-db",
-			"database_id": "placeholder-replace-after-creation"
+			"database_id": "daf79163-03ec-428b-acde-00ff607b201d"
 		}
 	],
 	"r2_buckets": [
