@@ -45,7 +45,12 @@ const statusLabels: Record<string, string> = {
 			<a href="/admin/property" class="btn-primary">+ Nueva Propiedad</a>
 		</div>
 
-		<div class="table-wrapper">
+		<div class="search-wrapper">
+			<input type="text" id="searchFilter" placeholder="Buscar por código, título, ubicación, tipo, precio, estado..." class="search-input" />
+		</div>
+
+		<!-- Desktop: Table -->
+		<div class="table-wrapper desktop-only">
 			<table>
 				<thead>
 					<tr>
@@ -57,15 +62,18 @@ const statusLabels: Record<string, string> = {
 						<th>Acciones</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody id="propertiesBody">
 					{properties.map((prop: any) => (
-						<tr>
+						<tr
+							data-search={`${prop.code || ''} ${prop.title} ${prop.location} ${prop.type === 'sale' ? 'Venta' : 'Alquiler'} ${prop.propertyType} ${prop.priceDisplay || ''} ${prop.priceDisplayUSD || ''} ${statusLabels[prop.status] || prop.status}`.toLowerCase()}
+						>
 							<td>
 								<img src={prop.images[0] || ''} alt="" class="thumb" />
 							</td>
 							<td>
 								<strong>{prop.title}</strong>
 								<br /><small class="muted">{prop.location}</small>
+								{prop.code && <><br /><small class="code-badge">{prop.code}</small></>}
 							</td>
 							<td>
 								<span class={`tag tag-${prop.type}`}>
@@ -91,6 +99,45 @@ const statusLabels: Record<string, string> = {
 				</tbody>
 			</table>
 		</div>
+
+		<!-- Mobile: Cards -->
+		<div class="cards-wrapper mobile-only" id="propertiesCards">
+			{properties.map((prop: any) => (
+				<div
+					class="prop-card"
+					data-search={`${prop.code || ''} ${prop.title} ${prop.location} ${prop.type === 'sale' ? 'Venta' : 'Alquiler'} ${prop.propertyType} ${prop.priceDisplay || ''} ${prop.priceDisplayUSD || ''} ${statusLabels[prop.status] || prop.status}`.toLowerCase()}
+				>
+					<div class="card-img-row">
+						<img src={prop.images[0] || ''} alt="" class="card-thumb" />
+						<div class="card-header-info">
+							<strong class="card-title">{prop.title}</strong>
+							<small class="muted">{prop.location}</small>
+							{prop.code && <span class="code-badge">{prop.code}</span>}
+						</div>
+					</div>
+					<div class="card-details">
+						<div class="card-tags">
+							<span class={`tag tag-${prop.type}`}>
+								{prop.type === 'sale' ? 'Venta' : 'Alquiler'}
+							</span>
+							<span class="tag tag-status">{statusLabels[prop.status] || prop.status}</span>
+							{prop.propertyType && <span class="muted">{prop.propertyType}</span>}
+						</div>
+						<div class="card-prices">
+							{prop.priceDisplay && <span class="price-line">{prop.priceDisplay}</span>}
+							{prop.priceDisplayUSD && <span class="price-line price-usd">{prop.priceDisplayUSD}</span>}
+						</div>
+					</div>
+					<div class="card-actions">
+						<a href={`/admin/property?id=${prop.id}`} class="btn-sm btn-edit">Editar</a>
+						<button class="btn-sm btn-pdf" data-id={prop.id}>PDF</button>
+						<button class="btn-sm btn-delete" data-id={prop.id} data-title={prop.title}>Eliminar</button>
+					</div>
+				</div>
+			))}
+		</div>
+
+		<p id="noResults" class="no-results hidden">No se encontraron propiedades.</p>
 	</main>
 
 	<div id="deleteModal" class="modal hidden">
@@ -108,6 +155,24 @@ const statusLabels: Record<string, string> = {
 </html>
 
 <script>
+	// Search filter (works on both table rows and cards)
+	const searchInput = document.getElementById('searchFilter') as HTMLInputElement;
+	const searchItems = document.querySelectorAll('[data-search]') as NodeListOf<HTMLElement>;
+	const noResults = document.getElementById('noResults')!;
+
+	searchInput.addEventListener('input', () => {
+		const query = searchInput.value.toLowerCase().trim();
+		let visibleCount = 0;
+		searchItems.forEach(el => {
+			const data = el.getAttribute('data-search') || '';
+			const match = !query || data.includes(query);
+			el.style.display = match ? '' : 'none';
+			if (match) visibleCount++;
+		});
+		// Each property appears twice (table row + card), so divide by 2
+		noResults.classList.toggle('hidden', visibleCount > 0);
+	});
+
 	let deleteId = '';
 
 	document.querySelectorAll('.btn-delete').forEach(btn => {
@@ -326,24 +391,6 @@ const statusLabels: Record<string, string> = {
 				y += 4;
 			}
 
-			// --- Contact ---
-			if (prop.contact_number) {
-				if (y > 270) {
-					doc.addPage();
-					y = margin;
-				}
-				doc.setDrawColor(200, 200, 200);
-				doc.line(margin, y, pageWidth - margin, y);
-				y += 8;
-				doc.setFontSize(11);
-				doc.setFont('helvetica', 'bold');
-				doc.text('Contacto', margin, y);
-				y += 6;
-				doc.setFontSize(10);
-				doc.setFont('helvetica', 'normal');
-				doc.text(prop.contact_number, margin, y);
-			}
-
 			// Save
 			const safeName = prop.title.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_');
 			doc.save(`${safeName}.pdf`);
@@ -395,6 +442,23 @@ const statusLabels: Record<string, string> = {
 		transition: background 0.2s;
 	}
 	.btn-primary:hover { background: #333; }
+
+	.search-wrapper { margin-bottom: 1rem; }
+	.search-input {
+		width: 100%; padding: 0.75rem 1rem; font-size: 0.95rem;
+		border: 1px solid #ddd; border-radius: 6px; background: #fff;
+		font-family: 'Inter', sans-serif; transition: border-color 0.2s;
+	}
+	.search-input:focus { outline: none; border-color: #1a1a1a; box-shadow: 0 0 0 2px rgba(26,26,26,0.1); }
+	.search-input::placeholder { color: #aaa; }
+
+	.code-badge {
+		display: inline-block; font-size: 0.8rem; font-weight: 600;
+		color: #e67e22; font-family: monospace;
+	}
+
+	.no-results { text-align: center; padding: 2rem; color: #999; font-size: 0.95rem; }
+	.no-results.hidden { display: none; }
 
 	.table-wrapper {
 		background: #fff; border-radius: 8px; overflow: hidden;
@@ -454,10 +518,56 @@ const statusLabels: Record<string, string> = {
 	.btn-confirm-delete { background: #c00; color: #fff; border-color: #c00; }
 	.btn-confirm-delete:hover { background: #a00; }
 
+	/* Desktop/Mobile toggle */
+	.mobile-only { display: none !important; }
+	.desktop-only { display: block; }
+
+	/* Cards styles */
+	.cards-wrapper { flex-direction: column; gap: 0.75rem; }
+
+	.prop-card {
+		background: #fff; border-radius: 8px; padding: 0.85rem;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+	}
+
+	.card-img-row {
+		display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.6rem;
+	}
+	.card-thumb {
+		width: 70px; height: 55px; object-fit: cover; border-radius: 6px;
+		border: 1px solid #eee; flex-shrink: 0;
+	}
+	.card-header-info {
+		display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
+	}
+	.card-title {
+		font-size: 0.95rem; line-height: 1.25;
+		overflow: hidden; text-overflow: ellipsis;
+		display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+	}
+	.card-header-info .code-badge { align-self: flex-start; margin-top: 0.15rem; }
+
+	.card-details { margin-bottom: 0.6rem; }
+	.card-tags {
+		display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+		margin-bottom: 0.4rem;
+	}
+	.card-prices {
+		display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline;
+	}
+	.card-prices .price-line { font-size: 0.95rem; }
+	.card-prices .price-usd { color: #666; font-size: 0.85rem; font-weight: 500; }
+
+	.card-actions {
+		display: flex; gap: 0.5rem; border-top: 1px solid #f0f0f0; padding-top: 0.6rem;
+	}
+	.card-actions .btn-sm { flex: 1; text-align: center; font-size: 0.78rem; padding: 0.45rem 0.4rem; }
+
 	@media (max-width: 768px) {
-		table { font-size: 0.85rem; }
-		.thumb { width: 45px; height: 35px; }
-		td, th { padding: 0.7rem 0.5rem; }
+		.desktop-only { display: none !important; }
+		.mobile-only { display: flex !important; }
+		.admin-main { padding: 0 1rem; }
 		.toolbar { flex-direction: column; gap: 1rem; align-items: flex-start; }
+		.admin-header { padding: 0.75rem 1rem; }
 	}
 </style>
