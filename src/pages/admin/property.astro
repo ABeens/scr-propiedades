@@ -192,7 +192,7 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 					<div id="notesList" class="notes-list"></div>
 					<div class="notes-input-row">
 						<input type="text" id="noteInput" class="notes-new-input" placeholder="Escribe una nota..." />
-						<button type="button" id="addNoteRow" class="notes-save-btn">Agregar</button>
+						<button type="button" id="addNoteRow" class="notes-save-btn"><span class="notes-btn-icon">+</span><span class="notes-btn-text">Agregar</span></button>
 					</div>
 					<div class="notes-actions">
 						<button type="button" id="saveNotesBtn" class="btn-primary notes-submit-btn">
@@ -806,10 +806,12 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 	}
 	.notes-new-input:focus { border-color: #1a1a1a; }
 	.notes-save-btn {
+		display: flex; align-items: center; justify-content: center; gap: 0.3rem;
 		padding: 0.55rem 1rem; background: #1a1a1a; color: #fff; border: none;
 		border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
 		white-space: nowrap; transition: background 0.15s;
 	}
+	.notes-btn-icon { display: none; font-size: 1.2rem; line-height: 1; }
 	.notes-save-btn:hover { background: #333; }
 	.notes-actions { margin-top: 0.75rem; }
 	.notes-submit-btn { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
@@ -897,5 +899,8 @@ const title = isEdit ? `Editar: ${property.title}` : 'Nueva Propiedad';
 
 	@media (max-width: 768px) {
 		.field-row { grid-template-columns: 1fr; }
+		.notes-btn-text { display: none; }
+		.notes-btn-icon { display: inline; }
+		.notes-save-btn { padding: 0.55rem 0.75rem; }
 	}
 </style>
